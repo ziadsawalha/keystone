@@ -261,6 +261,22 @@ class AuthProtocol(object):
                     self._decorate_request('X_ROLE',
                         roles, env, proxy_headers)
 
+                    if 'capabilities' in claims \
+                            and len(claims['capabilities']) > 0:
+                        for service in claims['capabilities']:
+                            for capability in claims['capabilities'][service]:
+                                roles = ''
+                                for role in claims['capabilities'][service][capability]:
+                                    if len(roles) > 0:
+                                        roles += ','
+                                    roles += role
+                                self._decorate_request('X_CAP_%s_%s' \
+                                    % (service.upper(), capability.upper()),
+                                    roles, env, proxy_headers)
+
+                    # NOTE(todd): unused
+                    self.expanded = True
+
         #Send request downstream
         return self._forward_request(env, start_response, proxy_headers)
 
@@ -330,16 +346,12 @@ class AuthProtocol(object):
             tenant_id = token_info['access']['user'].get('tenantId')
             tenant_name = token_info['access']['user'].get('tenantName')
 
-        verified_claims = {
-            'user': {
-                'id': token_info['access']['user']['id'],
-                'name': token_info['access']['user']['name'],
-            },
-            'tenant': {
-                'id': tenant_id,
-                'name': tenant_name
-            },
-            'roles': roles}
+        # Capabilities
+        try:
+            capabilities = token_info['access']['token']['capabilities']
+            verified_claims['capabilities'] = capabilities
+        except:
+            pass
 
         return verified_claims
 

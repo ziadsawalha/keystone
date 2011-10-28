@@ -46,7 +46,6 @@ def get_auth_token(username, password, tenant):
     conn.request("POST", "/v2.0/tokens", json.dumps(params), headers=headers)
     response = conn.getresponse()
     data = response.read()
-    print data
     ret = data
     return ret
 
@@ -110,3 +109,14 @@ if __name__ == '__main__':
     print "\033[91mTrying with bad credentials...\033[0m"
     auth = get_auth_token("joeuser", "wrongpass", "customer-x")
     print "Response:", auth
+
+    print "\033[91mTrying with admin credentials...\033[0m"
+    auth = get_auth_token("joeadmin", "secrete", "customer-x")
+    obj = json.loads(auth)
+    token = obj["access"]["token"]["id"]
+    print "Token obtained:", token
+
+    # Use that token to call an OpenStack service (echo)
+    data = call_service(token)
+    print "Response received:", data
+    print

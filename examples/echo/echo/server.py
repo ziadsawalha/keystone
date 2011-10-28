@@ -74,9 +74,20 @@ class EchoApp(object):
             print '  Identity   :', self.envr['HTTP_X_AUTHORIZATION']
         if 'HTTP_X_TENANT' in self.envr:
             print '  Tenant     :', self.envr['HTTP_X_TENANT']
+        roles = ['all']
         if 'HTTP_X_ROLE' in self.envr:
             print '  Roles      :', self.envr['HTTP_X_ROLE']
-
+            roles.append(self.envr['HTTP_X_ROLE'].split(","))
+        print roles
+        roles = set(roles)
+        
+        for header in self.envr:
+            if header.startswith("HTTP_X_CAP_"):
+                intersects = False
+                if set(self.envr[header].split(",")).intersection(roles):
+                    print '  %s: %s' % (header[11:], self.envr[header])
+                else:
+                    print '  skipping', header
         accept = self.envr.get("HTTP_ACCEPT", "application/json")
         if accept == "application/xml":
             return self.toXML()
