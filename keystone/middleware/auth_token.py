@@ -359,6 +359,17 @@ class AuthProtocol(object):
         except:
             print 'Error parsing capabilities'
 
+            tenant = None
+            tenant_name = None
+        if not tenant:
+            tenant = token_info['access']['user'].get('tenantId')
+            tenant_name = token_info['access']['user'].get('tenantName')
+        verified_claims = {'user': token_info['access']['user']['username'],
+                    'tenant': tenant,
+                    'roles': roles}
+        if tenant_name:
+            verified_claims['tenantName'] = tenant_name
+
         return verified_claims
 
     def _decorate_request(self, index, value, env, proxy_headers):
