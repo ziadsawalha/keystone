@@ -77,7 +77,7 @@ class EchoApp(object):
         roles = ['all']
         if 'HTTP_X_ROLE' in self.envr:
             print '  Roles      :', self.envr['HTTP_X_ROLE']
-            roles.append(self.envr['HTTP_X_ROLE'].split(","))
+            roles += self.envr['HTTP_X_ROLE'].split(",")
         print roles
         roles = set(roles)
         
