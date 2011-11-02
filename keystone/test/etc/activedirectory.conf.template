@@ -23,13 +23,13 @@ backend_entities = ['Endpoints', 'Credentials',  'EndpointTemplates', 'Token', '
 
 [keystone.backends.activedirectory]
 # Add 184.106.145.140 to hosts as AD-SQL-STUB.openstack.local for SSL matching
-ldap_server = AD-SQL-STUB.openstack.local
-ldap_use_ssl = True
-ldap_cacertfile = AD-SQL-STUB.pem
-ldap_use_port = 636
-ldap_user = openstack\keystone
-ldap_password = Password1
-ldap_root = 'ou=tenants,dc=openstack,dc=local'
+server = AD-SQL-STUB.openstack.local
+use_ssl = True
+cacertfile = AD-SQL-STUB.pem
+use_port = 636
+user = openstack\keystone
+password = Password1
+root = 'ou=tenants,dc=openstack,dc=local'
 role_map = 'Admin':'cn=Domain Admins,cn=Users,dc=openstack,dc=local'
 
 backend_entities = ['Tenant', 'User', 'UserRoleAssociation', 'Role']
