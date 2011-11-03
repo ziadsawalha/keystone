@@ -68,26 +68,21 @@ class EchoApp(object):
         else:
             identity_status = self.envr["HTTP_X_IDENTITY_STATUS"]
 
-        print '  Received:'
+        print '  Received:-'
         print '  Auth Status:', identity_status
         if 'HTTP_X_AUTHORIZATION' in self.envr:
-            print '  Identity   :', self.envr['HTTP_X_AUTHORIZATION']
+            print '  Identity    :', self.envr['HTTP_X_AUTHORIZATION']
         if 'HTTP_X_TENANT' in self.envr:
-            print '  Tenant     :', self.envr['HTTP_X_TENANT']
+            print '  Tenant      :', self.envr['HTTP_X_TENANT']
         roles = ['all']
         if 'HTTP_X_ROLE' in self.envr:
-            print '  Roles      :', self.envr['HTTP_X_ROLE']
+            print '  Roles       :', self.envr['HTTP_X_ROLE']
             roles += self.envr['HTTP_X_ROLE'].split(",")
-        print roles
         roles = set(roles)
         
-        for header in self.envr:
-            if header.startswith("HTTP_X_CAP_"):
-                intersects = False
-                if set(self.envr[header].split(",")).intersection(roles):
-                    print '  %s: %s' % (header[11:], self.envr[header])
-                else:
-                    print '  skipping', header
+        if 'HTTP_X_CAPABILITIES' in self.envr:
+            print '  Capabilities:', self.envr['HTTP_X_CAPABILITIES']
+
         accept = self.envr.get("HTTP_ACCEPT", "application/json")
         if accept == "application/xml":
             return self.toXML()

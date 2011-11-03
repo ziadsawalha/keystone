@@ -263,16 +263,11 @@ class AuthProtocol(object):
 
                     if 'capabilities' in claims \
                             and len(claims['capabilities']) > 0:
-                        for service in claims['capabilities']:
-                            for capability in claims['capabilities'][service]:
-                                roles = ''
-                                for role in claims['capabilities'][service][capability]:
-                                    if len(roles) > 0:
-                                        roles += ','
-                                    roles += role
-                                self._decorate_request('X_CAP_%s_%s' \
-                                    % (service.upper(), capability.upper()),
-                                    roles, env, proxy_headers)
+                            capabilities = claims['capabilities']
+                            self._decorate_request(
+                                'X_CAPABILITIES',
+                                str(",".join(capabilities)),
+                                env, proxy_headers)
 
                     # NOTE(todd): unused
                     self.expanded = True
@@ -352,6 +347,17 @@ class AuthProtocol(object):
             verified_claims['capabilities'] = capabilities
         except:
             pass
+
+        try:
+            catalog_info = json.loads(data)
+            for endpoint in catalog_info['endpoints']:
+                if endpoint['type'] == "compute":
+                    if 'RAX-RBAC-capabilities' in endpoint:
+                        verified_claims['capabilities'] = \
+                            endpoint['RAX-RBAC-capabilities']
+                        break
+        except:
+            print 'Error parsing capabilities'
 
         return verified_claims
 

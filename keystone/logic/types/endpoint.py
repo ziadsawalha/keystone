@@ -314,6 +314,44 @@ class Endpoint(object):
             endpoint["name"] = self.name
         if self.type:
             endpoint["type"] = self.type
+            
+            # Sample data
+            if self.type == "compute":
+                endpoint['RAX-RBAC-capabilities'] = \
+                    ['DescribeAvailabilityZones',
+                    'DescribeRegions',
+                    'DescribeSnapshots',
+                    'DescribeKeyPairs',
+                    'CreateKeyPair',
+                    'DeleteKeyPair',
+                    'DescribeSecurityGroups',
+                    'AuthorizeSecurityGroupIngress',
+                    'RevokeSecurityGroupIngress',
+                    'CreateSecurityGroup',
+                    'DeleteSecurityGroup',
+                    'GetConsoleOutput',
+                    'DescribeVolumes',
+                    'CreateVolume',
+                    'AttachVolume',
+                    'DetachVolume',
+                    'DescribeInstances',
+                    'DescribeAddresses',
+                    'AllocateAddress',
+                    'ReleaseAddress',
+                    'AssociateAddress',
+                    'DisassociateAddress',
+                    'RunInstances',
+                    'TerminateInstances',
+                    'RebootInstances',
+                    'UpdateInstance',
+                    'DeleteVolume',
+                    'DescribeImages',
+                    'DeregisterImage',
+                    'RegisterImage',
+                    'DescribeImageAttribute',
+                    'ModifyImageAttribute',
+                    'UpdateImage']
+
         if self.public_url:
             endpoint["publicURL"] = self.public_url
         if self.admin_url:
