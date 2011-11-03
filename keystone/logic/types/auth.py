@@ -361,6 +361,7 @@ class AuthData(object):
             },
         }
 
+
     def to_xml(self):
         dom = etree.Element("access",
             xmlns="http://docs.openstack.org/identity/api/v2.0")
@@ -455,9 +456,6 @@ class AuthData(object):
                 service_catalog.append(service)
             auth["serviceCatalog"] = service_catalog
 
-        if self.service_capabilities != None:
-            auth["capabilities"] = self.service_capabilities
-
         ret = {}
         ret["access"] = auth
         return json.dumps(ret)
@@ -516,6 +514,7 @@ class ValidateData(object):
             },
         }
 
+
     def to_xml(self):
         dom = etree.Element("access",
             xmlns="http://docs.openstack.org/identity/api/v2.0")
@@ -550,9 +549,6 @@ class ValidateData(object):
         token = {
             "id": unicode(self.token.id),
             "expires": self.token.expires.isoformat()}
-
-        if self.service_capabilities != None:
-            token["capabilities"] = self.service_capabilities
 
         if self.token.tenant:
             token['tenant'] = {

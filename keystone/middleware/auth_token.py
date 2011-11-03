@@ -370,6 +370,37 @@ class AuthProtocol(object):
         if tenant_name:
             verified_claims['tenantName'] = tenant_name
 
+        # Not final code. just a hack
+        # Get any set of Capabilities for a compute endpoint
+        headers = {"Content-type": "application/json",
+                    "Accept": "application/json",
+                    "X-Auth-Token": self.admin_token}
+                    ##TODO(ziad):we need to figure out how to auth to keystone
+                    #since validate_token is a priviledged call
+                    #Khaled's version uses creds to get a token
+                    # "X-Auth-Token": admin_token}
+                    # we're using a test token from the ini file for now
+        conn = http_connect(self.auth_host, self.auth_port, 'GET',
+                            '/v2.0/tokens/%s/endpoints' % claims,
+                            headers=headers)
+        resp = conn.getresponse()
+        data = resp.read()
+        conn.close()
+
+        if not str(resp.status).startswith('20'):
+            print 'Unable to get catalog: %s' % resp.status
+
+        try:
+            catalog_info = json.loads(data)
+            for endpoint in catalog_info['endpoints']:
+                if endpoint['type'] == "compute":
+                    if 'RAX-RBAC-capabilities' in endpoint:
+                        verified_claims['capabilities'] = \
+                            endpoint['RAX-RBAC-capabilities']
+                        break
+        except:
+            print 'Error parsing capabilities'
+
         return verified_claims
 
     def _decorate_request(self, index, value, env, proxy_headers):
