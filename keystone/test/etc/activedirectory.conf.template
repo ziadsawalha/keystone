@@ -19,7 +19,7 @@ hash-password = True
 [keystone.backends.sqlalchemy]
 sql_connection = for_testing_only
 sql_idle_timeout = 30
-backend_entities = ['Endpoints', 'Credentials',  'EndpointTemplates', 'Token', 'Service']
+backend_entities = ['Endpoints',  'EndpointTemplates', 'Token', 'Service']
 
 [keystone.backends.activedirectory]
 # Add 184.106.145.140 to hosts as AD-SQL-STUB.openstack.local for SSL matching
@@ -32,7 +32,7 @@ password = Password1
 root = 'ou=tenants,dc=openstack,dc=local'
 role_map = 'Admin':'cn=Domain Admins,cn=Users,dc=openstack,dc=local'
 
-backend_entities = ['Tenant', 'User', 'UserRoleAssociation', 'Role']
+backend_entities = ['Tenant', 'User', 'UserRoleAssociation', 'Role', 'Credentials']
 
 [pipeline:admin]
 pipeline =
