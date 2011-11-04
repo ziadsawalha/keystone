@@ -44,47 +44,6 @@ def safe_iter(attrs):
         yield attrs
 
 
-class LDAPWrapper(object):
-    def __init__(self, API):
-        self.conn = API.get_connection()
-
-    def simple_bind_s(self, user, password):
-        LOG.debug("LDAP bind: dn=%s", user)
-        return self.conn.simple_bind_s(user, password)
-
-    def add_s(self, dn, attrs):
-        ldap_attrs = [(typ, map(py2ldap, safe_iter(values)))
-                      for typ, values in attrs]
-        if LOG.isEnabledFor(logging.DEBUG):
-            sane_attrs = [(typ, values if typ != 'userPassword' else ['****'])
-                          for typ, values in ldap_attrs]
-            LOG.debug("LDAP add: dn=%s, attrs=%s", dn, sane_attrs)
-        return self.conn.add_s(dn, ldap_attrs)
-
-    def search_s(self, dn, scope, query):
-        if LOG.isEnabledFor(logging.DEBUG):
-            LOG.debug("LDAP search: dn=%s, scope=%s, query=%s", dn,
-                        fakeldap.scope_names[scope], query)
-        res = self.conn.search_s(dn, scope, query)
-        return [(dn, dict([(typ, map(ldap2py, values))
-                           for typ, values in attrs.iteritems()]))
-                for dn, attrs in res]
-
-    def modify_s(self, dn, modlist):
-        ldap_modlist = [(op, typ, None if values is None else
-                         map(py2ldap, safe_iter(values)))
-                        for op, typ, values in modlist]
-        if LOG.isEnabledFor(logging.DEBUG):
-            sane_modlist = [(op, typ, values if typ != 'userPassword'
-                            else ['****']) for op, typ, values in ldap_modlist]
-            LOG.debug("LDAP modify: dn=%s, modlist=%s", dn, sane_modlist)
-        return self.conn.modify_s(dn, ldap_modlist)
-
-    def delete_s(self, dn):
-        LOG.debug("LDAP delete: dn=%s", dn)
-        return self.conn.delete_s(dn)
-
-
 class API(object):
     apis = ['tenant', 'user', 'role']
 
@@ -125,3 +84,47 @@ class API(object):
         LOG.debug("Logged in as: %s", self.LDAP.whoami_s())
 
         return conn
+
+    def connect(self):
+        if not self.conn:
+            self.conn = self.get_connection()
+
+    def disconnect(self):
+        self.conn.unbind()
+        self.conn = None
+
+    def simple_bind_s(self, user, password):
+        LOG.debug("LDAP bind: dn=%s", user)
+        return self.conn.simple_bind_s(user, password)
+
+    def add_s(self, dn, attrs):
+        ldap_attrs = [(typ, map(py2ldap, safe_iter(values)))
+                      for typ, values in attrs]
+        if LOG.isEnabledFor(logging.DEBUG):
+            sane_attrs = [(typ, values if typ != 'userPassword' else ['****'])
+                          for typ, values in ldap_attrs]
+            LOG.debug("LDAP add: dn=%s, attrs=%s", dn, sane_attrs)
+        return self.conn.add_s(dn, ldap_attrs)
+
+    def search_s(self, dn, scope, query):
+        if LOG.isEnabledFor(logging.DEBUG):
+            LOG.debug("LDAP search: dn=%s, scope=%s, query=%s", dn,
+                        fakeldap.scope_names[scope], query)
+        res = self.conn.search_s(dn, scope, query)
+        return [(dn, dict([(typ, map(ldap2py, values))
+                           for typ, values in attrs.iteritems()]))
+                for dn, attrs in res]
+
+    def modify_s(self, dn, modlist):
+        ldap_modlist = [(op, typ, None if values is None else
+                         map(py2ldap, safe_iter(values)))
+                        for op, typ, values in modlist]
+        if LOG.isEnabledFor(logging.DEBUG):
+            sane_modlist = [(op, typ, values if typ != 'userPassword'
+                            else ['****']) for op, typ, values in ldap_modlist]
+            LOG.debug("LDAP modify: dn=%s, modlist=%s", dn, sane_modlist)
+        return self.conn.modify_s(dn, ldap_modlist)
+
+    def delete_s(self, dn):
+        LOG.debug("LDAP delete: dn=%s", dn)
+        return self.conn.delete_s(dn)

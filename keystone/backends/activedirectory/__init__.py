@@ -16,6 +16,7 @@
 #    under the License.
 
 import ldap
+#TODO(Ziad) Consider implementing a pool: http://pypi.python.org/pypi/ldappool/
 
 import keystone.backends.api as top_api
 import keystone.backends.models as top_models

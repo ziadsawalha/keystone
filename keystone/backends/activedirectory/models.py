@@ -1,8 +1,8 @@
 from collections import Mapping
 
-__all__ = ['UserRoleAssociation', 'Role', 'Tenant', 'User',
-           'Credentials']
-
+#__all__ = ['UserRoleAssociation', 'Role', 'Tenant', 'User',
+#           'Credentials']
+__all__ = ['Tenant']
 
 def create_model(name, attrs):
     class C(Mapping):
@@ -39,13 +39,16 @@ def create_model(name, attrs):
     return C
 
 
-UserRoleAssociation = create_model(
+"""UserRoleAssociation = create_model(
     'UserRoleAssociation', ['id', 'user_id', 'role_id', 'tenant_id'])
 Role = create_model(
     'Role', ['id', 'desc', 'service_id'])
+"""
 Tenant = create_model(
     'Tenant', ['id', 'name', 'desc', 'enabled'])
-User = create_model(
+
+"""User = create_model(
     'User', ['id', 'name', 'password', 'email', 'enabled', 'tenant_id'])
 Credentials = create_model(
     'Credentials', ['user_id', 'type', 'key', 'secret'])
+"""
