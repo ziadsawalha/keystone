@@ -341,7 +341,35 @@ class AuthProtocol(object):
             tenant_id = token_info['access']['user'].get('tenantId')
             tenant_name = token_info['access']['user'].get('tenantName')
 
+        verified_claims = {
+            'user': {
+                'id': token_info['access']['user']['id'],
+                'name': token_info['access']['user']['name'],
+            },
+            'tenant': {
+                'id': tenant_id,
+                'name': tenant_name
+            },
+            'roles': roles}
+
         # Capabilities
+        headers = {"Content-type": "application/json",
+                    "Accept": "application/json",
+                    "X-Auth-Token": self.admin_token}
+                    ##TODO(ziad):we need to figure out how to auth to keystone
+                    #since validate_token is a priviledged call
+                    #Khaled's version uses creds to get a token
+                    # "X-Auth-Token": admin_token}
+                    # we're using a test token from the ini file for now
+        conn = http_connect(self.auth_host, self.auth_port, 'GET',
+                            '/v2.0/tokens/%s/endpoints' % claims,
+                            headers=headers,
+                            ssl=(self.auth_protocol == 'https'),
+                            key_file=self.key_file, cert_file=self.cert_file)
+        resp = conn.getresponse()
+        data = resp.read()
+        conn.close()
+
         try:
             capabilities = token_info['access']['token']['capabilities']
             verified_claims['capabilities'] = capabilities
@@ -357,49 +385,7 @@ class AuthProtocol(object):
                             endpoint['RAX-RBAC-capabilities']
                         break
         except:
-            print 'Error parsing capabilities'
-
-            tenant = None
-            tenant_name = None
-        if not tenant:
-            tenant = token_info['access']['user'].get('tenantId')
-            tenant_name = token_info['access']['user'].get('tenantName')
-        verified_claims = {'user': token_info['access']['user']['username'],
-                    'tenant': tenant,
-                    'roles': roles}
-        if tenant_name:
-            verified_claims['tenantName'] = tenant_name
-
-        # Not final code. just a hack
-        # Get any set of Capabilities for a compute endpoint
-        headers = {"Content-type": "application/json",
-                    "Accept": "application/json",
-                    "X-Auth-Token": self.admin_token}
-                    ##TODO(ziad):we need to figure out how to auth to keystone
-                    #since validate_token is a priviledged call
-                    #Khaled's version uses creds to get a token
-                    # "X-Auth-Token": admin_token}
-                    # we're using a test token from the ini file for now
-        conn = http_connect(self.auth_host, self.auth_port, 'GET',
-                            '/v2.0/tokens/%s/endpoints' % claims,
-                            headers=headers)
-        resp = conn.getresponse()
-        data = resp.read()
-        conn.close()
-
-        if not str(resp.status).startswith('20'):
-            print 'Unable to get catalog: %s' % resp.status
-
-        try:
-            catalog_info = json.loads(data)
-            for endpoint in catalog_info['endpoints']:
-                if endpoint['type'] == "compute":
-                    if 'RAX-RBAC-capabilities' in endpoint:
-                        verified_claims['capabilities'] = \
-                            endpoint['RAX-RBAC-capabilities']
-                        break
-        except:
-            print 'Error parsing capabilities'
+            pass
 
         return verified_claims
 

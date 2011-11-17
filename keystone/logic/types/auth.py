@@ -318,49 +318,6 @@ class AuthData(object):
             self.__convert_baseurls_to_dict()
         self.e = {}
 
-        self.service_capabilities = {
-            'compute': {
-                'DescribeAvailabilityZones': ['all'],
-                'DescribeRegions': ['all'],
-                'DescribeSnapshots': ['all'],
-                'DescribeKeyPairs': ['all'],
-                'CreateKeyPair': ['all'],
-                'DeleteKeyPair': ['all'],
-                'DescribeSecurityGroups': ['all'],
-                'AuthorizeSecurityGroupIngress': ['netadmin'],
-                'RevokeSecurityGroupIngress': ['netadmin'],
-                'CreateSecurityGroup': ['netadmin'],
-                'DeleteSecurityGroup': ['netadmin'],
-                'GetConsoleOutput': ['projectmanager', 'sysadmin'],
-                'DescribeVolumes': ['projectmanager', 'sysadmin'],
-                'CreateVolume': ['projectmanager', 'sysadmin'],
-                'AttachVolume': ['projectmanager', 'sysadmin'],
-                'DetachVolume': ['projectmanager', 'sysadmin'],
-                'DescribeInstances': ['all'],
-                'DescribeAddresses': ['all'],
-                'AllocateAddress': ['netadmin'],
-                'ReleaseAddress': ['netadmin'],
-                'AssociateAddress': ['netadmin'],
-                'DisassociateAddress': ['netadmin'],
-                'RunInstances': ['projectmanager', 'sysadmin'],
-                'TerminateInstances': ['projectmanager', 'sysadmin'],
-                'RebootInstances': ['projectmanager', 'sysadmin'],
-                'UpdateInstance': ['projectmanager', 'sysadmin'],
-                'DeleteVolume': ['projectmanager', 'sysadmin'],
-                'DescribeImages': ['all'],
-                'DeregisterImage': ['projectmanager', 'sysadmin'],
-                'RegisterImage': ['projectmanager', 'sysadmin'],
-                'DescribeImageAttribute': ['all'],
-                'ModifyImageAttribute': ['projectmanager', 'sysadmin'],
-                'UpdateImage': ['projectmanager', 'sysadmin'],
-            },
-            'identity': {
-                # All actions have the same permission: ['none'] (the default)
-                # superusers will be allowed to run them
-                # all others will get HTTPUnauthorized.
-            },
-        }
-
 
     def to_xml(self):
         dom = etree.Element("access",
@@ -470,50 +427,6 @@ class ValidateData(object):
     def __init__(self, token, user):
         self.token = token
         self.user = user
-        self.service_capabilities = {
-            'compute': {
-                'DescribeAvailabilityZones': ['all'],
-                'DescribeRegions': ['all'],
-                'DescribeSnapshots': ['all'],
-                'DescribeKeyPairs': ['all'],
-                'CreateKeyPair': ['all'],
-                'DeleteKeyPair': ['all'],
-                'DescribeSecurityGroups': ['all'],
-                'AuthorizeSecurityGroupIngress': ['netadmin'],
-                'RevokeSecurityGroupIngress': ['netadmin'],
-                'CreateSecurityGroup': ['netadmin'],
-                'DeleteSecurityGroup': ['netadmin'],
-                'GetConsoleOutput': ['projectmanager', 'sysadmin'],
-                'DescribeVolumes': ['projectmanager', 'sysadmin'],
-                'CreateVolume': ['projectmanager', 'sysadmin'],
-                'AttachVolume': ['projectmanager', 'sysadmin'],
-                'DetachVolume': ['projectmanager', 'sysadmin'],
-                'DescribeInstances': ['all'],
-                'DescribeAddresses': ['all'],
-                'AllocateAddress': ['netadmin'],
-                'ReleaseAddress': ['netadmin'],
-                'AssociateAddress': ['netadmin'],
-                'DisassociateAddress': ['netadmin'],
-                'RunInstances': ['projectmanager', 'sysadmin'],
-                'TerminateInstances': ['projectmanager', 'sysadmin'],
-                'RebootInstances': ['projectmanager', 'sysadmin'],
-                'UpdateInstance': ['projectmanager', 'sysadmin'],
-                'DeleteVolume': ['projectmanager', 'sysadmin'],
-                'DescribeImages': ['all'],
-                'DeregisterImage': ['projectmanager', 'sysadmin'],
-                'RegisterImage': ['projectmanager', 'sysadmin'],
-                'DescribeImageAttribute': ['all'],
-                'ModifyImageAttribute': ['projectmanager', 'sysadmin'],
-                'UpdateImage': ['projectmanager', 'sysadmin'],
-            },
-            'identity': {
-                'CreateTenant': ['admin'],
-                # All actions have the same permission: ['none'] (the default)
-                # superusers will be allowed to run them
-                # all others will get HTTPUnauthorized.
-            },
-        }
-
 
     def to_xml(self):
         dom = etree.Element("access",
