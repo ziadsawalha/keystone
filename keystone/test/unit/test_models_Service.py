@@ -1,6 +1,9 @@
 import json
+from lxml import etree
 import unittest2 as unittest
+
 from keystone.models import Service
+from keystone.test import utils as testutils
 
 
 class TestModelsService(unittest.TestCase):
@@ -26,14 +29,26 @@ class TestModelsService(unittest.TestCase):
         except:
             self.assert_(False, "Invalid attribute on service should fail")
 
+    def test_service_properties(self):
+        service = Service(id=1, name="the service", blank=None)
+        service["dynamic"] = "test"
+        self.assertEquals(service["dynamic"], "test")
+ 
     def test_service_json_serialization(self):
         service = Service(id=1, name="the service", blank=None)
+        service["dynamic"] = "test"
         json_str = service.to_json()
-        self.assertEquals(json_str, '{"name": "the service", "id": 1}')
+        d1 = json.loads(json_str)
+        d2 = json.loads('{"name": "the service", \
+                          "id": 1, "dynamic": "test"}')
+        self.assertEquals(d1, d2)
 
     def test_service_xml_serialization(self):
         service = Service(id=1, name="the service", blank=None)
         xml_str = service.to_xml()
+        self.assertTrue(testutils.XMLTools.xmlEqual(xml_str,
+                        '<Service blank="" type="" id="1" \
+                              name="the service"/>'))
 
     def test_service_json_deserialization(self):
         service = Service.from_json('{"name": "the service", "id": 1}',
