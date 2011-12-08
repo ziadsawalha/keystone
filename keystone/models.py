@@ -45,7 +45,7 @@ The uses supported are:
     print tenant_by_id.to_json_20()  # Keystone 2.0 contract
 
     Serialization routines can take hints in this format:
-        {"attribute": value}
+        [{"attribute": value}]
         attribute/value can be:
         contract_attributes: list of contract attributeds (see initializer)
             format is an array of attributes (ex ['id', 'name'])
@@ -67,7 +67,10 @@ class Resource(dict):
         super(Resource, self).__init__(*args, **kw)
         # attributes that can be used as attributes. Example:
         #    tenant.id  - here id is a contract atribute
+        # initialize dynamically (to prevent recursion on __setattr__)
         super(Resource, self).__setattr__("contract_attributes", [])
+        # set statically for references
+        self.contract_attributes = []
         if kw:
             self.contract_attributes.extend(kw.keys())
             for name, value in kw.iteritems():
@@ -92,9 +95,23 @@ class Resource(dict):
         if name in self.contract_attributes:
             # Go all the way back to dict and set the value
             super(dict, self).__setattr__(name, value)
+        elif name == 'contract_attributes':
+            pass
         else:
             raise AttributeError("'%s' not found on object of class '%s'" % \
                                  (name, self.__class__.__name__))
+
+    #
+    # Serialization Functions - may be moved to a different class
+    #
+    @staticmethod
+    def dict_to_xml(d, xml):
+        for key, value in d.iteritems():
+            if isinstance(value, dict):
+                element = xml.Element(key)
+                dict_to_xml(value, element)
+            else:
+                xml.set(key, str(value))
 
     def to_json(self, hints=None):
         """ Serializes object to json - implies latest Keystone contract """
@@ -105,6 +122,7 @@ class Resource(dict):
         dom = etree.Element(self.__class__.__name__)
         for attribute in self.contract_attributes:
             dom.set(attribute, str(self.__getattr__(attribute) or ''))
+        self.dict_to_xml(self, dom)
         return etree.tostring(dom)
 
     def to_json_20(self, hints=None):

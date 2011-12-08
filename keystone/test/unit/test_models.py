@@ -1,6 +1,9 @@
 import json
+from lxml import etree
 import unittest2 as unittest
+
 from keystone.models import Resource
+from keystone.test import utils as testutils
 
 
 class TestModels(unittest.TestCase):
@@ -36,6 +39,8 @@ class TestModels(unittest.TestCase):
     def test_resource_xml_serialization(self):
         resource = Resource(id=1, name="the resource", blank=None)
         xml_str = resource.to_xml()
+        self.assertTrue(testutils.XMLTools.xmlEqual(xml_str,
+                        '<Resource blank="" id="1" name="the resource"/>'))
 
     def test_resource_xml_deserialization(self):
         resource = Resource(id=1, name="the resource", blank=None)
