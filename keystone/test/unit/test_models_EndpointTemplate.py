@@ -42,11 +42,11 @@ class TestModelsEndpointTemplate(unittest.TestCase):
     def test_endpointtemplate_json_serialization(self):
         endpointtemplate = EndpointTemplate(id=1, name="the endpointtemplate",
                                             blank=None)
-        endpointtemplate["dynamic"] = "test"
+        endpointtemplate.dict["dynamic"] = "test"
         json_str = endpointtemplate.to_json()
         d1 = json.loads(json_str)
-        d2 = json.loads('{"name": "the endpointtemplate", \
-                          "id": 1, "dynamic": "test"}')
+        d2 = json.loads('{"endpointtemplate": {"name": "the endpointtemplate",\
+                          "id": 1, "dynamic": "test"}}')
         self.assertEquals(d1, d2)
 
     def test_endpointtemplate_xml_serialization(self):
@@ -54,16 +54,13 @@ class TestModelsEndpointTemplate(unittest.TestCase):
                                             blank=None)
         xml_str = endpointtemplate.to_xml()
         self.assertTrue(testutils.XMLTools.xmlEqual(xml_str,
-                        '<EndpointTemplate is_global="" \
-                        name="the endpointtemplate" version_info="" \
-                        admin_url="" public_url="" enabled="" internal_url="" \
-                        version_id="" blank="" region="" version_list="" \
-                        type="" id="1"/>'))
+                        '<endpointtemplate \
+                        name="the endpointtemplate" id="1"/>'))
 
     def test_endpointtemplate_json_deserialization(self):
         endpointtemplate = EndpointTemplate.from_json('{"name": \
                                     "the endpointtemplate", "id": 1}',
-                            hints=[{"contract_attributes": ['id', 'name']}])
+                            hints={"contract_attributes": ['id', 'name']})
         self.assertIsInstance(endpointtemplate, EndpointTemplate)
         self.assertEquals(endpointtemplate.id, 1)
         self.assertEquals(endpointtemplate.name, "the endpointtemplate")

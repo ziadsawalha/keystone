@@ -31,30 +31,39 @@ class TestModels(unittest.TestCase):
 
     def test_resource_dynamic_properties(self):
         resource = Resource(id=1, name="the resource", blank=None)
-        resource["dynamic"] = "test"
-        self.assertEquals(resource["dynamic"], "test")
-        self.assertEquals(resource["name"], "the resource")
+        resource.dict["dynamic"] = "test"
+        self.assertEquals(resource.dict["dynamic"], "test")
+        self.assertEquals(resource.dict["name"], "the resource")
 
     def test_resource_json_serialization(self):
         resource = Resource(id=1, name="the resource", blank=None)
         json_str = resource.to_json()
         d1 = json.loads(json_str)
-        d2 = json.loads('{"name": "the resource", "id": 1}')
+        d2 = json.loads('{"resource": {"name": "the resource", "id": 1}}')
         self.assertEquals(d1, d2)
 
     def test_resource_xml_serialization(self):
         resource = Resource(id=1, name="the resource", blank=None)
         xml_str = resource.to_xml()
         self.assertTrue(testutils.XMLTools.xmlEqual(xml_str,
-                        '<Resource blank="" id="1" name="the resource"/>'))
+                        '<resource id="1" name="the resource"/>'))
 
     def test_resource_xml_deserialization(self):
-        resource = Resource(id=1, name="the resource", blank=None)
+        resource = Resource.from_xml('<Resource blank="" id="1" \
+                                     name="the resource"/>',
+                            hints={
+                                "contract_attributes": ['id', 'name'],
+                                "types": [("id", int)]})
         self.assertIsInstance(resource, Resource)
+        self.assertEquals(resource.id, 1)
+        self.assertEquals(resource.name, "the resource")
 
     def test_resource_json_deserialization(self):
-        resource = Resource.from_json('{"name": "the resource", "id": 1}',
-                            hints=[{"contract_attributes": ['id', 'name']}])
+        resource = Resource.from_json('{"resource": {"name": "the resource", \
+                                      "id": 1}}',
+                            hints={
+                                "contract_attributes": ['id', 'name'],
+                                "types": [("id", int)]})
         self.assertIsInstance(resource, Resource)
         self.assertEquals(resource.id, 1)
         self.assertEquals(resource.name, "the resource")

@@ -36,23 +36,24 @@ class TestModelsService(unittest.TestCase):
 
     def test_service_json_serialization(self):
         service = Service(id=1, name="the service", blank=None)
-        service["dynamic"] = "test"
+        service.dict["dynamic"] = "test"
         json_str = service.to_json()
         d1 = json.loads(json_str)
-        d2 = json.loads('{"name": "the service", \
-                          "id": 1, "dynamic": "test"}')
+        d2 = json.loads('{"service": {"name": "the service", \
+                          "id": 1, "dynamic": "test"}}')
         self.assertEquals(d1, d2)
 
     def test_service_xml_serialization(self):
         service = Service(id=1, name="the service", blank=None)
         xml_str = service.to_xml()
         self.assertTrue(testutils.XMLTools.xmlEqual(xml_str,
-                    '<Service blank="" type="" id="1" name="the service" \
-                                    description=""/>'))
+                    '<service id="1" name="the service" />'))
 
     def test_service_json_deserialization(self):
         service = Service.from_json('{"name": "the service", "id": 1}',
-                            hints=[{"contract_attributes": ['id', 'name']}])
+                            hints={
+                                "contract_attributes": ['id', 'name'],
+                                "types": [("id", int)]})
         self.assertIsInstance(service, Service)
         self.assertEquals(service.id, 1)
         self.assertEquals(service.name, "the service")

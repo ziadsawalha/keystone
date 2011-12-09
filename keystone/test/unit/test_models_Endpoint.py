@@ -33,45 +33,50 @@ class TestModelsEndpoint(unittest.TestCase):
             self.assert_(False, "Invalid attribute on endpoint should fail")
 
     def test_endpoint_properties(self):
-        endpoint = Endpoint(id=1, name="the endpoint", blank=None)
+        endpoint = Endpoint(id=2, name="the endpoint", blank=None)
         endpoint["dynamic"] = "test"
         self.assertEquals(endpoint["dynamic"], "test")
 
     def test_endpoint_json_serialization(self):
-        endpoint = Endpoint(id=1, name="the endpoint", blank=None)
-        endpoint["dynamic"] = "test"
+        endpoint = Endpoint(id=3, name="the endpoint", blank=None)
+        endpoint.dict["dynamic"] = "test"
         json_str = endpoint.to_json()
         d1 = json.loads(json_str)
-        d2 = json.loads('{"name": "the endpoint", \
-                          "id": 1, "dynamic": "test"}')
+        d2 = json.loads('{"endpoint": {"name": "the endpoint", \
+                          "id": 3, "dynamic": "test"}}')
         self.assertEquals(d1, d2)
 
     def test_endpoint_xml_serialization(self):
-        endpoint = Endpoint(id=1, name="the endpoint", blank=None)
+        endpoint = Endpoint(id=4, name="the endpoint", blank=None)
         xml_str = endpoint.to_xml()
         self.assertTrue(testutils.XMLTools.xmlEqual(xml_str,
-                        '<Endpoint name="the endpoint" version_info="" \
-                        tenant_id="" admin_url="" public_url="" \
-                        internal_url="" version_id="" blank="" region="" \
-                        version_list="" type="" id="1"/>'))
+                        '<endpoint name="the endpoint" id="4"/>'))
 
     def test_endpoint_json_deserialization(self):
-        endpoint = Endpoint.from_json('{"name": "the endpoint", "id": 1}',
-                            hints=[{"contract_attributes": ['id', 'name']}])
+        endpoint = Endpoint.from_json('{"name": "the endpoint", "id": 5}',
+                            hints={"contract_attributes": ['id', 'name']})
         self.assertIsInstance(endpoint, Endpoint)
-        self.assertEquals(endpoint.id, 1)
+        self.assertEquals(endpoint.id, 5)
+        self.assertEquals(endpoint.name, "the endpoint")
+
+    def test_endpoint_json_deserialization_rootless(self):
+        endpoint = Endpoint.from_json('{"endpoint": {"name": "the endpoint", \
+                                      "id": 6}}',
+                            hints={"contract_attributes": ['id', 'name']})
+        self.assertIsInstance(endpoint, Endpoint)
+        self.assertEquals(endpoint.id, 6)
         self.assertEquals(endpoint.name, "the endpoint")
 
     def test_endpoint_xml_deserialization(self):
-        endpoint = Endpoint(id=1, name="the endpoint", blank=None)
+        endpoint = Endpoint(id=7, name="the endpoint", blank=None)
         self.assertIsInstance(endpoint, Endpoint)
 
     def test_endpoint_inspection(self):
-        endpoint = Endpoint(id=1, name="the endpoint", blank=None)
+        endpoint = Endpoint(id=8, name="the endpoint", blank=None)
         self.assertIsNone(endpoint.inspect())
 
     def test_endpoint_validation(self):
-        endpoint = Endpoint(id=1, name="the endpoint", blank=None)
+        endpoint = Endpoint(id=9, name="the endpoint", blank=None)
         self.assertTrue(endpoint.validate())
 
 

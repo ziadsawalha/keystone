@@ -15,17 +15,46 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import json
+
 from keystone.backends.sqlalchemy import get_session, models, aliased
 from keystone.backends.api import BaseTenantAPI
-
+from keystone.models import Tenant
 
 class TenantAPI(BaseTenantAPI):
     # pylint: disable=W0221
+    @staticmethod
+    def transpose(values):
+        """ Handles transposing field names from Keystone model to
+        sqlalchemy mode
+        
+        Differences:
+            desc <-> description
+            id <-> uid (coming soon)
+        """
+        if 'description' in values:
+            values['desc'] = values['description']
+        if 'enabled' in values:
+            if values['enabled'] in [1, 'true', 'True', True]:
+                values['enabled'] = 1
+            else:
+                values['enabled'] = 0
+
+    @staticmethod
+    def to_model(tenant_ref):
+        """ Returns Keystone model object based on SQLAlchemy model"""
+        tenant = Tenant(id=str(tenant_ref["id"]),
+                        description=tenant_ref["desc"],
+                        enabled=str(tenant_ref["enabled"]).lower(),
+                        name=tenant_ref["name"])
+        return tenant
+
     def create(self, values):
         tenant_ref = models.Tenant()
+        TenantAPI.transpose(values)
         tenant_ref.update(values)
         tenant_ref.save()
-        return tenant_ref
+        return TenantAPI.to_model(tenant_ref)
 
     def get(self, id, session=None):
         session = session or get_session()
@@ -171,6 +200,7 @@ class TenantAPI(BaseTenantAPI):
             session = get_session()
         with session.begin():
             tenant_ref = self.get(id, session)
+            self.transpose(values)
             tenant_ref.update(values)
             tenant_ref.save(session=session)
 

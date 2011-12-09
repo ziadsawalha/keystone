@@ -36,23 +36,22 @@ class TestModelsUser(unittest.TestCase):
 
     def test_user_json_serialization(self):
         user = User(id=1, name="the user", blank=None)
-        user["dynamic"] = "test"
+        user.dict["dynamic"] = "test"
         json_str = user.to_json()
         d1 = json.loads(json_str)
-        d2 = json.loads('{"name": "the user", \
-                          "id": 1, "dynamic": "test"}')
+        d2 = json.loads('{"user": {"name": "the user", \
+                          "id": 1, "dynamic": "test"}}')
         self.assertEquals(d1, d2)
 
     def test_user_xml_serialization(self):
         user = User(id=1, name="the user", blank=None)
         xml_str = user.to_xml()
         self.assertTrue(testutils.XMLTools.xmlEqual(xml_str,
-                        '<User name="the user" enabled="" email="" \
-                        default_tenant_id="" blank="" password="" id="1"/>'))
+                        '<user name="the user" id="1"/>'))
 
     def test_user_json_deserialization(self):
         user = User.from_json('{"name": "the user", "id": 1}',
-                            hints=[{"contract_attributes": ['id', 'name']}])
+                            hints={"contract_attributes": ['id', 'name']})
         self.assertIsInstance(user, User)
         self.assertEquals(user.id, 1)
         self.assertEquals(user.name, "the user")
