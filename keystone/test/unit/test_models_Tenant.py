@@ -20,7 +20,7 @@ class TestModelsTenant(unittest.TestCase):
 
     def test_tenant_static_properties(self):
         tenant = Tenant(id=1, name="the tenant", enabled=True, blank=None)
-        self.assertEquals(tenant.id, 1)
+        self.assertEquals(tenant.id, "1")
         self.assertEquals(tenant.name, "the tenant")
         self.assertTrue(tenant.enabled)
         self.assertEquals(tenant.description, None)
@@ -32,43 +32,80 @@ class TestModelsTenant(unittest.TestCase):
             self.assert_(False, "Invalid attribute on tenant should fail")
 
     def test_tenant_properties(self):
-        tenant = Tenant(id=1, name="the tenant", blank=None)
-        tenant["dynamic"] = "test"
-        self.assertEquals(tenant["dynamic"], "test")
+        tenant = Tenant(id=2, name="the tenant", blank=None)
+        tenant.dict["dynamic"] = "test"
+        self.assertEquals(tenant.dict["dynamic"], "test")
 
-    def test_tenant_json_serialization(self):
-        tenant = Tenant(id=1, name="the tenant", blank=None)
-        tenant["dynamic"] = "test"
+    def test_tenant_initialization(self):
+        tenant = Tenant(id=3, name="the tenant", enabled=True, blank=None)
+        self.assertTrue(tenant.enabled)
+
+        tenant = Tenant(id=35, name="the tenant", enabled=0, blank=None)
+        self.assertEquals(tenant.enabled, 'false')
+
         json_str = tenant.to_json()
         d1 = json.loads(json_str)
-        d2 = json.loads('{"name": "the tenant", \
-                          "id": 1, "dynamic": "test"}')
+        self.assertIn('tenant', d1)
+        self.assertIn('enabled', d1['tenant'])
+        self.assertEquals(d1['tenant']['enabled'], 'false')
+
+    def test_tenant_json_serialization(self):
+        tenant = Tenant(id=3, name="the tenant", enabled=True, blank=None)
+        tenant.dict["dynamic"] = "test"
+        json_str = tenant.to_json()
+
+        d1 = json.loads(json_str)
+        d2 = json.loads('{"tenant": {"name": "the tenant", \
+                          "id": "3", "enabled": "true", "dynamic": "test"}}')
         self.assertEquals(d1, d2)
 
     def test_tenant_xml_serialization(self):
-        tenant = Tenant(id=1, name="the tenant", blank=None)
+        tenant = Tenant(id=4, name="the tenant", description="X", blank=None)
         xml_str = tenant.to_xml()
         self.assertTrue(testutils.XMLTools.xmlEqual(xml_str,
-                        '<Tenant blank="" enabled="" id="1" \
-                        name="the tenant" description=""/>'))
+                        '<tenant \
+                        xmlns="http://docs.openstack.org/identity/api/v2.0" \
+                        id="4" name="the tenant">\
+                        <description>X</description></tenant>'))
 
     def test_tenant_json_deserialization(self):
-        tenant = Tenant.from_json('{"name": "the tenant", "id": 1}',
-                            hints=[{"contract_attributes": ['id', 'name']}])
+        tenant = Tenant.from_json('{"tenant": {"name": "the tenant",\
+                                  "id": 5, "extra": "some data"}}',
+                            hints={"contract_attributes": ['id', 'name']})
         self.assertIsInstance(tenant, Tenant)
-        self.assertEquals(tenant.id, 1)
+        self.assertEquals(tenant.id, 5)
         self.assertEquals(tenant.name, "the tenant")
 
     def test_tenant_xml_deserialization(self):
-        tenant = Tenant(id=1, name="the tenant", blank=None)
+        tenant = Tenant.from_xml('<tenant \
+                        xmlns="http://docs.openstack.org/identity/api/v2.0" \
+                        enabled="true" id="6" name="the tenant">\
+                        <description>qwerty text</description></tenant>',
+                            hints={
+                                "contract_attributes": ['id', 'name'],
+                                "types": [("id", int),
+                                    ("description", str)]})
         self.assertIsInstance(tenant, Tenant)
+        self.assertEquals(tenant.id, 6)
+        self.assertEquals(tenant.name, "the tenant")
+        self.assertEquals(tenant.description, "qwerty text")
+
+    def test_tenant_xml_deserialization_hintless(self):
+        tenant = Tenant.from_xml('<tenant \
+                        xmlns="http://docs.openstack.org/identity/api/v2.0" \
+                        enabled="none" id="7" name="the tenant">\
+                        <description>qwerty text</description></tenant>')
+        self.assertIsInstance(tenant, Tenant)
+        self.assertEquals(tenant.id, "7")
+        self.assertEquals(tenant.name, "the tenant")
+        self.assertEquals(tenant.description, "qwerty text")
 
     def test_tenant_inspection(self):
-        tenant = Tenant(id=1, name="the tenant", blank=None)
+        tenant = Tenant(id=8, name="the tenant", blank=None)
         self.assertIsNone(tenant.inspect())
 
     def test_tenant_validation(self):
-        tenant = Tenant(id=1, name="the tenant", blank=None)
+        tenant = Tenant(id=9, name="the tenant", blank=None)
         self.assertTrue(tenant.validate())
 
 

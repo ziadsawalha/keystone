@@ -38,23 +38,22 @@ class TestModelsRole(unittest.TestCase):
 
     def test_role_json_serialization(self):
         role = Role(id=1, name="the role", blank=None)
-        role["dynamic"] = "test"
+        role.dict["dynamic"] = "test"
         json_str = role.to_json()
         d1 = json.loads(json_str)
-        d2 = json.loads('{"name": "the role", \
-                          "id": 1, "dynamic": "test"}')
+        d2 = json.loads('{"role": {"name": "the role", \
+                          "id": 1, "dynamic": "test"}}')
         self.assertEquals(d1, d2)
 
     def test_role_xml_serialization(self):
         role = Role(id=1, name="the role", blank=None)
         xml_str = role.to_xml()
         self.assertTrue(testutils.XMLTools.xmlEqual(xml_str,
-                        '<Role description="" tenant_id="" blank="" \
-                        service_id="" id="1" name="the role"/>'))
+                        '<role id="1" name="the role"/>'))
 
     def test_role_json_deserialization(self):
         role = Role.from_json('{"name": "the role", "id": 1}',
-                            hints=[{"contract_attributes": ['id', 'name']}])
+                            hints={"contract_attributes": ['id', 'name']})
         self.assertIsInstance(role, Role)
         self.assertEquals(role.id, 1)
         self.assertEquals(role.name, "the role")

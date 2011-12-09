@@ -23,7 +23,8 @@ import keystone.backends as backends
 import keystone.backends.api as api
 import keystone.backends.models as models
 from keystone.logic.types import fault
-from keystone.logic.types.tenant import Tenant, Tenants
+from keystone.models import Tenant
+from keystone.logic.types.tenant import Tenants
 from keystone.logic.types.role import Role, Roles
 from keystone.logic.types.service import Service, Services
 from keystone.logic.types.user import User, User_Update, Users
@@ -480,19 +481,15 @@ class IdentityService(object):
             raise fault.BadRequestFault("Expecting a Tenant")
 
         utils.check_empty_string(tenant.name, "Expecting a unique Tenant Name")
-
-        if api.TENANT.get_by_name(tenant.name) != None:
+        if api.TENANT.get_by_name(tenant.name) is not None:
             raise fault.TenantConflictFault(
                 "A tenant with that name already exists")
 
-        dtenant = models.Tenant()
+        dtenant = Tenant()
         dtenant.name = tenant.name
-        dtenant.desc = tenant.description
+        dtenant.description = tenant.description
         dtenant.enabled = tenant.enabled
-
-        dtenant = api.TENANT.create(dtenant)
-        tenant.id = dtenant.id
-        return tenant
+        return api.TENANT.create(dtenant.dict)
 
     @staticmethod
     def get_tenants(admin_token, marker, limit, url,
@@ -517,8 +514,10 @@ class IdentityService(object):
             prev_page, next_page = api.TENANT.get_page_markers(marker, limit)
 
         for dtenant in dtenants:
-            ts.append(Tenant(id=dtenant.id, name=dtenant.name,
-                description=dtenant.desc, enabled=dtenant.enabled))
+            t = Tenant(id=dtenant.id, name=dtenant.name,
+                description=dtenant.desc, enabled=dtenant.enabled)
+            print t
+            ts.append(t)
 
         links = IdentityService.get_links(url, prev_page, next_page, limit)
         return Tenants(ts, links)

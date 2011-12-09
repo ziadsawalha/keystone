@@ -31,7 +31,7 @@ class TestIssue85(common.FunctionalTestCase):
                     'name': tenant['name'],
                     'description': 'description',
                     'enabled': False}})
-        self.assertFalse(r.json['tenant']['enabled'])
+        self.assertEquals(r.json['tenant']['enabled'], 'false')
 
         # Assert that token belonging to disabled tenant is invalid
         r = self.admin_request(path='/tokens/%s?belongsTo=%s' %

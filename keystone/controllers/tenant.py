@@ -1,7 +1,7 @@
 from keystone import utils
 from keystone.common import wsgi
 from keystone.logic.service import IdentityService
-from keystone.logic.types.tenant import Tenant
+from keystone.models import Tenant
 from . import get_marker_limit_and_url
 
 

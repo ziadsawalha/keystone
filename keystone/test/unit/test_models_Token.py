@@ -37,23 +37,22 @@ class TestModelsToken(unittest.TestCase):
 
     def test_token_json_serialization(self):
         token = Token(id=1, name="the token", blank=None)
-        token["dynamic"] = "test"
+        token.dict["dynamic"] = "test"
         json_str = token.to_json()
         d1 = json.loads(json_str)
-        d2 = json.loads('{"name": "the token", \
-                          "id": 1, "dynamic": "test"}')
+        d2 = json.loads('{"token": {"name": "the token", \
+                          "id": 1, "dynamic": "test"}}')
         self.assertEquals(d1, d2)
 
     def test_token_xml_serialization(self):
         token = Token(id=1, name="the token", blank=None)
         xml_str = token.to_xml()
         self.assertTrue(testutils.XMLTools.xmlEqual(xml_str,
-                        '<Token blank="" tenant_id="" expires="" id="1" \
-                        name="the token"/>'))
+                        '<token id="1" name="the token"/>'))
 
     def test_token_json_deserialization(self):
         token = Token.from_json('{"name": "the token", "id": 1}',
-                            hints=[{"contract_attributes": ['id', 'name']}])
+                            hints={"contract_attributes": ['id', 'name']})
         self.assertIsInstance(token, Token)
         self.assertEquals(token.id, 1)
         self.assertEquals(token.name, "the token")

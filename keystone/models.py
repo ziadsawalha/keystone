@@ -32,6 +32,10 @@ The uses supported are:
     id = tenant.id
     tenant = None
 
+    # Acts as a dict
+    tenant is a dict
+    tenant.dict points to the data dict (i.e. tenant["tenant"])
+
     # can be retrieved by static property
     tenant_by_name = Tenant.get(name='A1000')
 
@@ -45,14 +49,24 @@ The uses supported are:
     print tenant_by_id.to_json_20()  # Keystone 2.0 contract
 
     Serialization routines can take hints in this format:
-        [{"attribute": value}]
+        {
+            "contract_attributes": ["id", "name", ...],
+            "types": [("id", int), (...)]
+        }
         attribute/value can be:
-        contract_attributes: list of contract attributeds (see initializer)
-            format is an array of attributes (ex ['id', 'name'])
+        contract_attributes: list of contract attributes (see initializer)
+            format is a list of attributes names (ex ['id', 'name'])
+        types: list of attribute/type mappings
+            format is a list of name/type tuples (ex [('id', int)])
+        tags: list of attributes that go into XML tags
+            format is a list of attribute names(ex ['description'])
 """
 
 import json
+
 from lxml import etree
+
+from keystone.utils import fault
 
 
 class Resource(dict):
@@ -71,14 +85,22 @@ class Resource(dict):
         super(Resource, self).__setattr__("contract_attributes", [])
         # set statically for references
         self.contract_attributes = []
+        #insert class name at root
+        root_name = self.__class__.__name__.lower()
+        d = {root_name: {}}
+        d[root_name].update(self)
+        self.clear()
+        self.update(d)
+        self.dict = self[root_name]
+
         if kw:
             self.contract_attributes.extend(kw.keys())
             for name, value in kw.iteritems():
-                if value:
+                if value is not None:
                     self.__setattr__(name, value)
                 else:
-                    if name in self:
-                        del self[name]
+                    if name in self.dict:
+                        del self.dict[name]
 
     #
     # model properties
@@ -92,8 +114,8 @@ class Resource(dict):
         This should only be called if the original call did not match
         an attribute (Python's rules)"""
         if name in self.contract_attributes:
-            if name in self:
-                return self[name]
+            if name in self.dict:
+                return self.dict[name]
             return None
         else:
             raise AttributeError("'%s' not found on object of class '%s'" % \
@@ -105,9 +127,12 @@ class Resource(dict):
         This should only be called if the original call did not match
         an attribute (Python's rules)."""
         if name in self.contract_attributes:
-            # Go all the way back to the dict and set the value
-            super(Resource, self).__setattr__(name, value)
-        elif name == 'contract_attributes':
+            if value is not None:
+                self.dict[name] = value
+            else:
+                if name in self.dict:
+                    del self.dict[name]
+        elif name in ['contract_attributes', 'dict']:
             # Allow someone to set that
             super(Resource, self).__setattr__(name, value)
         else:
@@ -143,29 +168,116 @@ class Resource(dict):
     #
     # Serialization Functions - may be moved to a different class
     #
+    def to_dict(self):
+        """ For compatibility with logic.types """
+        # TODO(zns): remove this since we already inherit from dict
+        return self.copy()
+
     @staticmethod
-    def dict_to_xml(d, xml):
+    def update_dict_to_xml(d, xml, tags=None):
         """ Attempts to convert a dict into XML as best as possible.
         Converts named keys and attributes and recursively calls for
-        any values are are embedded dicts"""
-        for key, value in d.iteritems():
+        any values are are embedded dicts
+
+        :param tags: accepts a list of attribute names that should go into XML
+        tags instead of attributes
+        """
+        if tags is None:
+            tags = []
+        for name, value in d.iteritems():
             if isinstance(value, dict):
-                element = xml.Element(key)
-                dict_to_xml(value, element)
+                element = etree.SubElement(xml, name)
+                Resource.update_dict_to_xml(value, element)
+            elif name in tags:
+                element = xml.find(name)
+                if element is None:
+                    element = etree.SubElement(xml, name)
+                element.text = str(value)
             else:
-                xml.set(key, str(value))
+                if value:
+                    xml.set(name, str(value))
+                else:
+                    del xml.attrib[name]
+
+    @staticmethod
+    def update_xml_to_dict(xml, d):
+        """ Attempts to update a dict with XML as best as possible."""
+        for key, value in xml.items():
+            d[key] = value
+        for element in xml.iterdescendants():
+            name = element.tag
+            if "}" in name:
+                #trim away namespace if it is there
+                name = name[name.rfind("}") + 1:]
+            if element.attrib == {}:
+                d[name] = element.text
+            else:
+                d[name] = {}
+                Resource.update_xml_to_dict(element, d[element.tag])
+
+    def apply_type_mappings(self, type_mappings):
+        """ Applies type mappings to dict values
+        Right now only handles integer mappings"""
+        if type_mappings:
+            for name, type in type_mappings:
+                if type is int:
+                    self.dict[name] = int(self.dict[name])
+                elif type is str:
+                    # Move sub to string
+                    if name in self.dict and self.dict[name] is dict:
+                        self.dict[name] = self.dict[name][0]
+                else:
+                    raise NotImplementedError("Model type mappings cannot \
+                                handle '%s' types" % type.__class__.__name__)
 
     def to_json(self, hints=None):
         """ Serializes object to json - implies latest Keystone contract """
-        return json.dumps(self)
+        result = json.dumps(self)
+        if hints:
+            if "types" in hints:
+                self.apply_type_mappings(hints["types"])
+        return result
 
     def to_xml(self, hints=None):
-        """ Serializes object to XML - implies latest Keystone contract """
-        dom = etree.Element(self.__class__.__name__)
-        for attribute in self.contract_attributes:
-            dom.set(attribute, str(self.__getattr__(attribute) or ''))
-        self.dict_to_xml(self, dom)
+        """ Serializes object to XML string
+            - implies latest Keystone contract
+            :param hints: see introduction on format"""
+        tags = None
+        if hints:
+            if 'tags' in hints:
+                tags = hints['tags']
+
+        dom = self.to_dom(tags=tags)
+        self.update_dict_to_xml(self.dict, dom, tags=tags)
         return etree.tostring(dom)
+
+    def to_dom(self, xmlns=None, tags=None):
+        """ Serializes object to XML objec
+        - implies latest Keystone contract
+        :param xmlns: accepts an optional namespace for XML
+        :param tags: accepts a list of attribute names that should go into XML
+        tags instead of attributes
+        """
+        if tags is None:
+            tags = []
+        if xmlns:
+            dom = etree.Element(self.__class__.__name__.lower(), xmlns=xmlns)
+        else:
+            dom = etree.Element(self.__class__.__name__.lower())
+        for name in self.contract_attributes:
+            value = self.__getattr__(name)
+            if value:
+                if name in tags:
+                    element = dom.find(name)
+                    if element is None:
+                        element = etree.SubElement(dom, name)
+                    element.text = str(value)
+                else:
+                    dom.set(name, str(value))
+            else:
+                if name in dom.attrib:
+                    del dom.attrib[name]
+        return dom
 
     def to_json_20(self, hints=None):
         """ Serializes object to json - always returns Keystone 2.0
@@ -181,30 +293,69 @@ class Resource(dict):
         """ Deserializes object from json - assumes latest Keystone
         contract
         """
-        object = json.loads(json_str)
-        model_object = None
-        if hints:
-            for hint in hints:
-                if 'contract_attributes' in hint:
+        try:
+            object = json.loads(json_str)
+
+            model_name = cls.__name__.lower()
+            if not model_name in object:
+                # Insert class name if it isn't there
+                d = {model_name: {}}
+                d[model_name].update(object)
+                object = d
+            object_dict = object[model_name]
+
+            model_object = None
+            type_mappings = None
+            if hints:
+                if 'types' in hints:
+                    type_mappings = hints['types']
+                if 'contract_attributes' in hints:
                     # build mapping and instantiate object with
                     # contract_attributes provided
                     params = {}
-                    for name in hint['contract_attributes']:
+                    for name in hints['contract_attributes']:
                         if name in object:
-                            params[name] = object[name]
+                            params[name] = object_dict[name]
                         else:
                             params[name] = None
                     model_object = cls(**params)
-        if model_object is None:
-            model_object = cls()
-        model_object.update(object)
-        return model_object
+            if model_object is None:
+                model_object = cls()
+            model_object.dict.update(object_dict)
+            if type_mappings:
+                model_object.apply_type_mappings(type_mappings)
+            return model_object
+        except (ValueError, TypeError) as e:
+            raise fault.BadRequestFault("Cannot parse '%s' json" % \
+                                        cls.__name__, str(e))
 
     @classmethod
-    def from_xml_20(cls, hints=None):
+    def from_xml(cls, xml_str, hints=None):
         """ Deserializes object from XML - assumes latest Keystone
         contract """
-        return cls()
+        try:
+            object = etree.fromstring(xml_str)
+            model_object = None
+            type_mappings = None
+            if hints:
+                if 'types' in hints:
+                    type_mappings = hints['types']
+                if 'contract_attributes' in hints:
+                    # build mapping and instantiate object with
+                    # contract_attributes provided
+                    params = {}
+                    for name in hints['contract_attributes']:
+                        params[name] = object.get(name, None)
+                    model_object = cls(**params)
+            if model_object is None:
+                model_object = cls()
+            cls.update_xml_to_dict(object, model_object.dict)
+            if type_mappings:
+                model_object.apply_type_mappings(type_mappings)
+            return model_object
+        except etree.LxmlError as e:
+            raise fault.BadRequestFault("Cannot parse '%s' xml" % cls.__name__,
+                                        str(e))
 
     @classmethod
     def from_json_20(cls, json_str, hints=None):
@@ -262,6 +413,48 @@ class Tenant(Resource):
         super(Tenant, self).__init__(id=id, name=name,
                                       description=description, enabled=enabled,
                                       *args, **kw)
+        if isinstance(self.id, int):
+            self.id = str(self.id)
+        if "enabled" in self.dict:
+            self.enabled = str(bool(self.enabled)).lower()
+
+    @classmethod
+    def from_xml(cls, xml_str, hints=None):
+        if hints is None:
+            hints = {}
+        if 'contract_attributes' not in hints:
+            hints['contract_attributes'] = ['id', 'name', 'description',
+                                           'enabled']
+        if 'tags' not in hints:
+            hints['tags'] = ["description"]
+        return super(Tenant, cls).from_xml(xml_str, hints=hints)
+
+    def to_dom(self, tags=None):
+        if tags is None:
+            tags = ["description"]
+
+        return super(Tenant, self).to_dom(
+                        xmlns="http://docs.openstack.org/identity/api/v2.0",
+                        tags=tags)
+
+    def to_xml(self, hints=None):
+        if hints is None:
+            hints = {}
+        if 'tags' not in hints:
+            hints['tags'] = ["description"]
+        return super(Tenant, self).to_xml(hints=hints)
+
+    def to_json(self, hints=None):
+        if hints is None:
+            hints = {}
+        if 'types' not in hints:
+            hints['type'] = [("enabled", bool)]
+        result = super(Tenant, self).to_json(hints=hints)
+        data = json.loads(result)
+        if 'enabled' in data['tenant']:
+            data['tenant']['enabled'] = str(data['tenant']['enabled']).lower()
+
+        return json.dumps(data)
 
 
 class User(Resource):

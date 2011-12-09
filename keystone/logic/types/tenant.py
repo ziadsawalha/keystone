@@ -15,8 +15,9 @@
 
 import json
 from lxml import etree
-from keystone.logic.types import fault
 
+from keystone.logic.types import fault
+from keystone import models
 
 class Tenant(object):
     """Describes a tenant in the auth system"""
@@ -56,7 +57,7 @@ class Tenant(object):
                              "description")
             if desc is None:
                 raise fault.BadRequestFault("Expecting Tenant Description")
-            return Tenant(id=id, name=name, description=desc.text,
+            return models.Tenant(id=id, name=name, description=desc.text,
                 enabled=set_enabled)
         except etree.LxmlError as e:
             raise fault.BadRequestFault("Cannot parse Tenant", str(e))
