@@ -29,6 +29,12 @@ class TestModels(unittest.TestCase):
         except:
             self.assert_(False, "Invalid attribute on resource should fail")
 
+    def test_resource_dynamic_properties(self):
+        resource = Resource(id=1, name="the resource", blank=None)
+        resource["dynamic"] = "test"
+        self.assertEquals(resource["dynamic"], "test")
+        self.assertEquals(resource["name"], "the resource")
+
     def test_resource_json_serialization(self):
         resource = Resource(id=1, name="the resource", blank=None)
         json_str = resource.to_json()

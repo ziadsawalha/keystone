@@ -33,7 +33,7 @@ class TestModelsService(unittest.TestCase):
         service = Service(id=1, name="the service", blank=None)
         service["dynamic"] = "test"
         self.assertEquals(service["dynamic"], "test")
- 
+
     def test_service_json_serialization(self):
         service = Service(id=1, name="the service", blank=None)
         service["dynamic"] = "test"
@@ -47,8 +47,8 @@ class TestModelsService(unittest.TestCase):
         service = Service(id=1, name="the service", blank=None)
         xml_str = service.to_xml()
         self.assertTrue(testutils.XMLTools.xmlEqual(xml_str,
-                        '<Service blank="" type="" id="1" \
-                              name="the service"/>'))
+                    '<Service blank="" type="" id="1" name="the service" \
+                                    description=""/>'))
 
     def test_service_json_deserialization(self):
         service = Service.from_json('{"name": "the service", "id": 1}',
