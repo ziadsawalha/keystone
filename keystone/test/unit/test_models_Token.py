@@ -37,7 +37,7 @@ class TestModelsToken(unittest.TestCase):
 
     def test_token_json_serialization(self):
         token = Token(id=1, name="the token", blank=None)
-        token.dict["dynamic"] = "test"
+        token["dynamic"] = "test"
         json_str = token.to_json()
         d1 = json.loads(json_str)
         d2 = json.loads('{"token": {"name": "the token", \

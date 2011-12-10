@@ -38,7 +38,7 @@ class TestModelsRole(unittest.TestCase):
 
     def test_role_json_serialization(self):
         role = Role(id=1, name="the role", blank=None)
-        role.dict["dynamic"] = "test"
+        role["dynamic"] = "test"
         json_str = role.to_json()
         d1 = json.loads(json_str)
         d2 = json.loads('{"role": {"name": "the role", \

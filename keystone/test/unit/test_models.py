@@ -31,9 +31,9 @@ class TestModels(unittest.TestCase):
 
     def test_resource_dynamic_properties(self):
         resource = Resource(id=1, name="the resource", blank=None)
-        resource.dict["dynamic"] = "test"
-        self.assertEquals(resource.dict["dynamic"], "test")
-        self.assertEquals(resource.dict["name"], "the resource")
+        resource["dynamic"] = "test"
+        self.assertEquals(resource["dynamic"], "test")
+        self.assertEquals(resource["name"], "the resource")
 
     def test_resource_json_serialization(self):
         resource = Resource(id=1, name="the resource", blank=None)

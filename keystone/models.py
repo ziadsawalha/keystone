@@ -65,6 +65,7 @@ The uses supported are:
 import json
 
 from lxml import etree
+from UserDict import UserDict, IterableUserDict, DictMixin
 
 from keystone.utils import fault
 
@@ -85,22 +86,15 @@ class Resource(dict):
         super(Resource, self).__setattr__("contract_attributes", [])
         # set statically for references
         self.contract_attributes = []
-        #insert class name at root
-        root_name = self.__class__.__name__.lower()
-        d = {root_name: {}}
-        d[root_name].update(self)
-        self.clear()
-        self.update(d)
-        self.dict = self[root_name]
 
         if kw:
             self.contract_attributes.extend(kw.keys())
             for name, value in kw.iteritems():
                 if value is not None:
-                    self.__setattr__(name, value)
+                    self[name] = value
                 else:
-                    if name in self.dict:
-                        del self.dict[name]
+                    if name in self:
+                        del self[name]
 
     #
     # model properties
@@ -114,8 +108,8 @@ class Resource(dict):
         This should only be called if the original call did not match
         an attribute (Python's rules)"""
         if name in self.contract_attributes:
-            if name in self.dict:
-                return self.dict[name]
+            if name in self:
+                return self[name]
             return None
         else:
             raise AttributeError("'%s' not found on object of class '%s'" % \
@@ -128,16 +122,22 @@ class Resource(dict):
         an attribute (Python's rules)."""
         if name in self.contract_attributes:
             if value is not None:
-                self.dict[name] = value
+                self[name] = value
             else:
-                if name in self.dict:
-                    del self.dict[name]
-        elif name in ['contract_attributes', 'dict']:
+                if name in self:
+                    del self[name]
+        elif name in ['contract_attributes']:
             # Allow someone to set that
             super(Resource, self).__setattr__(name, value)
         else:
             raise AttributeError("'%s' not found on object of class '%s'" % \
                                  (name, self.__class__.__name__))
+
+    def __getitem__(self, name):
+        return super(Resource, self).__getitem__(name)
+
+    def __setitem__(self, name, value):
+        super(Resource, self).__setitem__(name, value)
 
     #
     # Validation calls
@@ -168,13 +168,18 @@ class Resource(dict):
     #
     # Serialization Functions - may be moved to a different class
     #
+    def __str__(self):
+        #insert class name at root
+        root_name = self.__class__.__name__.lower()
+        return str({root_name: self})
+
     def to_dict(self):
         """ For compatibility with logic.types """
-        # TODO(zns): remove this since we already inherit from dict
-        return self.copy()
+        root_name = self.__class__.__name__.lower()
+        return {root_name: self.copy()}
 
     @staticmethod
-    def update_dict_to_xml(d, xml, tags=None):
+    def write_dict_to_xml(d, xml, tags=None):
         """ Attempts to convert a dict into XML as best as possible.
         Converts named keys and attributes and recursively calls for
         any values are are embedded dicts
@@ -187,20 +192,26 @@ class Resource(dict):
         for name, value in d.iteritems():
             if isinstance(value, dict):
                 element = etree.SubElement(xml, name)
-                Resource.update_dict_to_xml(value, element)
+                Resource.write_dict_to_xml(value, element)
             elif name in tags:
                 element = xml.find(name)
                 if element is None:
                     element = etree.SubElement(xml, name)
-                element.text = str(value)
+                if isinstance(value, dict):
+                    Resource.write_dict_to_xml(value, element)
+                else:
+                    element.text = str(value)
             else:
                 if value:
-                    xml.set(name, str(value))
+                    if isinstance(value, dict):
+                        Resource.write_dict_to_xml(value, xml)
+                    else:
+                        xml.set(name, str(value))
                 else:
                     del xml.attrib[name]
 
     @staticmethod
-    def update_xml_to_dict(xml, d):
+    def write_xml_to_dict(xml, d):
         """ Attempts to update a dict with XML as best as possible."""
         for key, value in xml.items():
             d[key] = value
@@ -213,7 +224,7 @@ class Resource(dict):
                 d[name] = element.text
             else:
                 d[name] = {}
-                Resource.update_xml_to_dict(element, d[element.tag])
+                Resource.write_xml_to_dict(element, d[element.tag])
 
     def apply_type_mappings(self, type_mappings):
         """ Applies type mappings to dict values
@@ -221,22 +232,22 @@ class Resource(dict):
         if type_mappings:
             for name, type in type_mappings:
                 if type is int:
-                    self.dict[name] = int(self.dict[name])
+                    self[name] = int(self[name])
                 elif type is str:
                     # Move sub to string
-                    if name in self.dict and self.dict[name] is dict:
-                        self.dict[name] = self.dict[name][0]
+                    if name in self and self[name] is dict:
+                        self[name] = self[name][0]
                 else:
                     raise NotImplementedError("Model type mappings cannot \
                                 handle '%s' types" % type.__class__.__name__)
 
     def to_json(self, hints=None):
         """ Serializes object to json - implies latest Keystone contract """
-        result = json.dumps(self)
+        d = self.to_dict()
         if hints:
             if "types" in hints:
-                self.apply_type_mappings(hints["types"])
-        return result
+                apply_type_mappings(d, hints["types"])
+        return json.dumps(d)
 
     def to_xml(self, hints=None):
         """ Serializes object to XML string
@@ -248,7 +259,7 @@ class Resource(dict):
                 tags = hints['tags']
 
         dom = self.to_dom(tags=tags)
-        self.update_dict_to_xml(self.dict, dom, tags=tags)
+        Resource.write_dict_to_xml(self, dom, tags=tags)
         return etree.tostring(dom)
 
     def to_dom(self, xmlns=None, tags=None):
@@ -264,29 +275,8 @@ class Resource(dict):
             dom = etree.Element(self.__class__.__name__.lower(), xmlns=xmlns)
         else:
             dom = etree.Element(self.__class__.__name__.lower())
-        for name in self.contract_attributes:
-            value = self.__getattr__(name)
-            if value:
-                if name in tags:
-                    element = dom.find(name)
-                    if element is None:
-                        element = etree.SubElement(dom, name)
-                    element.text = str(value)
-                else:
-                    dom.set(name, str(value))
-            else:
-                if name in dom.attrib:
-                    del dom.attrib[name]
+        Resource.write_dict_to_xml(self, dom, tags)
         return dom
-
-    def to_json_20(self, hints=None):
-        """ Serializes object to json - always returns Keystone 2.0
-        contract """
-        return self.to_json(hints=hints)
-
-    def to_xml_20(self, hints=None):
-        """ Serializes object to XML - always returns Keystone 2.0 contract """
-        return self.to_xml(hints=hints)
 
     @classmethod
     def from_json(cls, json_str, hints=None):
@@ -297,12 +287,9 @@ class Resource(dict):
             object = json.loads(json_str)
 
             model_name = cls.__name__.lower()
-            if not model_name in object:
-                # Insert class name if it isn't there
-                d = {model_name: {}}
-                d[model_name].update(object)
-                object = d
-            object_dict = object[model_name]
+            if model_name in object:
+                # Ignore class name if it is there
+                object = object[model_name]
 
             model_object = None
             type_mappings = None
@@ -315,13 +302,13 @@ class Resource(dict):
                     params = {}
                     for name in hints['contract_attributes']:
                         if name in object:
-                            params[name] = object_dict[name]
+                            params[name] = object[name]
                         else:
                             params[name] = None
                     model_object = cls(**params)
             if model_object is None:
                 model_object = cls()
-            model_object.dict.update(object_dict)
+            model_object.update(object)
             if type_mappings:
                 model_object.apply_type_mappings(type_mappings)
             return model_object
@@ -349,23 +336,13 @@ class Resource(dict):
                     model_object = cls(**params)
             if model_object is None:
                 model_object = cls()
-            cls.update_xml_to_dict(object, model_object.dict)
+            cls.write_xml_to_dict(object, model_object)
             if type_mappings:
                 model_object.apply_type_mappings(type_mappings)
             return model_object
         except etree.LxmlError as e:
             raise fault.BadRequestFault("Cannot parse '%s' xml" % cls.__name__,
                                         str(e))
-
-    @classmethod
-    def from_json_20(cls, json_str, hints=None):
-        """ Deserializes object from json - assumes Keystone 2.0 contract """
-        return cls()
-
-    @classmethod
-    def from_xml_20(cls, hints=None):
-        """ Deserializes object from XML - assumes Keystone 2.0 contract """
-        return cls()
 
     #
     # Backend management
@@ -374,9 +351,9 @@ class Resource(dict):
         """ Handles finding correct backend and writing to it
         Supports both saving new object (create) and updating an existing one
         """
-        #if self.id:
+        #if self.status == 'new':
         #    #backends[find the class].create(self)
-        #elif old:
+        #elif self.status == 'existing':
         #    #backends[find the class].update(self)
         pass
 
@@ -415,7 +392,7 @@ class Tenant(Resource):
                                       *args, **kw)
         if isinstance(self.id, int):
             self.id = str(self.id)
-        if "enabled" in self.dict:
+        if "enabled" in self:
             self.enabled = str(bool(self.enabled)).lower()
 
     @classmethod

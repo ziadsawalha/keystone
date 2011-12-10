@@ -36,7 +36,7 @@ class TestModelsUser(unittest.TestCase):
 
     def test_user_json_serialization(self):
         user = User(id=1, name="the user", blank=None)
-        user.dict["dynamic"] = "test"
+        user["dynamic"] = "test"
         json_str = user.to_json()
         d1 = json.loads(json_str)
         d2 = json.loads('{"user": {"name": "the user", \

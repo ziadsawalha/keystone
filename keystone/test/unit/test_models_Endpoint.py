@@ -39,7 +39,7 @@ class TestModelsEndpoint(unittest.TestCase):
 
     def test_endpoint_json_serialization(self):
         endpoint = Endpoint(id=3, name="the endpoint", blank=None)
-        endpoint.dict["dynamic"] = "test"
+        endpoint["dynamic"] = "test"
         json_str = endpoint.to_json()
         d1 = json.loads(json_str)
         d2 = json.loads('{"endpoint": {"name": "the endpoint", \

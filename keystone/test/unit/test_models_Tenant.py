@@ -33,8 +33,8 @@ class TestModelsTenant(unittest.TestCase):
 
     def test_tenant_properties(self):
         tenant = Tenant(id=2, name="the tenant", blank=None)
-        tenant.dict["dynamic"] = "test"
-        self.assertEquals(tenant.dict["dynamic"], "test")
+        tenant["dynamic"] = "test"
+        self.assertEquals(tenant["dynamic"], "test")
 
     def test_tenant_initialization(self):
         tenant = Tenant(id=3, name="the tenant", enabled=True, blank=None)
@@ -51,7 +51,7 @@ class TestModelsTenant(unittest.TestCase):
 
     def test_tenant_json_serialization(self):
         tenant = Tenant(id=3, name="the tenant", enabled=True, blank=None)
-        tenant.dict["dynamic"] = "test"
+        tenant["dynamic"] = "test"
         json_str = tenant.to_json()
 
         d1 = json.loads(json_str)
