@@ -42,7 +42,7 @@ class TestModelsEndpointTemplate(unittest.TestCase):
     def test_endpointtemplate_json_serialization(self):
         endpointtemplate = EndpointTemplate(id=1, name="the endpointtemplate",
                                             blank=None)
-        endpointtemplate.dict["dynamic"] = "test"
+        endpointtemplate["dynamic"] = "test"
         json_str = endpointtemplate.to_json()
         d1 = json.loads(json_str)
         d2 = json.loads('{"endpointtemplate": {"name": "the endpointtemplate",\

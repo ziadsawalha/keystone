@@ -489,7 +489,7 @@ class IdentityService(object):
         dtenant.name = tenant.name
         dtenant.description = tenant.description
         dtenant.enabled = tenant.enabled
-        return api.TENANT.create(dtenant.dict)
+        return api.TENANT.create(dtenant)
 
     @staticmethod
     def get_tenants(admin_token, marker, limit, url,
