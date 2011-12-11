@@ -81,7 +81,7 @@ class Resource(dict):
         """
         super(Resource, self).__init__(*args, **kw)
         # attributes that can be used as attributes. Example:
-        #    tenant.id  - here id is a contract atribute
+        #    tenant.id  - here id is a contract attribute
         # initialize dynamically (to prevent recursion on __setattr__)
         super(Resource, self).__setattr__("contract_attributes", [])
         # set statically for references
@@ -90,11 +90,7 @@ class Resource(dict):
         if kw:
             self.contract_attributes.extend(kw.keys())
             for name, value in kw.iteritems():
-                if value is not None:
-                    self[name] = value
-                else:
-                    if name in self:
-                        del self[name]
+                self[name] = value
 
     #
     # model properties
@@ -111,6 +107,10 @@ class Resource(dict):
             if name in self:
                 return self[name]
             return None
+        elif name == 'desc':
+            # We need to maintain this compatibility with this nasty attribute
+            # until we're done refactoring
+            return self.description
         else:
             raise AttributeError("'%s' not found on object of class '%s'" % \
                                  (name, self.__class__.__name__))
@@ -123,10 +123,7 @@ class Resource(dict):
         if name in self.contract_attributes:
             if value is not None:
                 self[name] = value
-            else:
-                if name in self:
-                    del self[name]
-        elif name in ['contract_attributes']:
+        elif name == 'contract_attributes':
             # Allow someone to set that
             super(Resource, self).__setattr__(name, value)
         else:
@@ -134,10 +131,24 @@ class Resource(dict):
                                  (name, self.__class__.__name__))
 
     def __getitem__(self, name):
-        return super(Resource, self).__getitem__(name)
+        if name in self.contract_attributes:
+            if super(Resource, self).__contains__(name):
+                return super(Resource, self).__getitem__(name)
+            return None
+        elif name == 'desc':
+            # We need to maintain this compatibility with this nasty attribute
+            # until we're done refactoring
+            return self.description
+        else:
+            return super(Resource, self).__getitem__(name)
 
     def __setitem__(self, name, value):
         super(Resource, self).__setitem__(name, value)
+
+    def __contains__(self, key):
+        if key in self.contract_attributes:
+            return True
+        return super(Resource, self).__contains__(key)
 
     #
     # Validation calls
@@ -169,14 +180,20 @@ class Resource(dict):
     # Serialization Functions - may be moved to a different class
     #
     def __str__(self):
-        #insert class name at root
-        root_name = self.__class__.__name__.lower()
-        return str({root_name: self})
+        return str(self.to_dict())
 
     def to_dict(self):
         """ For compatibility with logic.types """
         root_name = self.__class__.__name__.lower()
-        return {root_name: self.copy()}
+        return {root_name: self.strip_null_fields(self.copy())}
+
+    @staticmethod
+    def strip_null_fields(d):
+        """ Strips null fields from dict"""
+        for k, v in d.items():
+            if v is None:
+                del d[k]
+        return d
 
     @staticmethod
     def write_dict_to_xml(d, xml, tags=None):
@@ -208,7 +225,8 @@ class Resource(dict):
                     else:
                         xml.set(name, str(value))
                 else:
-                    del xml.attrib[name]
+                    if name in xml:
+                        del xml.attrib[name]
 
     @staticmethod
     def write_xml_to_dict(xml, d):
@@ -393,7 +411,11 @@ class Tenant(Resource):
         if isinstance(self.id, int):
             self.id = str(self.id)
         if "enabled" in self:
-            self.enabled = str(bool(self.enabled)).lower()
+            if self.enabled is not None:
+                if str(self.enabled).lower() in ['1', 'true']:
+                    self.enabled = 'true'
+                else:
+                    self.enabled = 'false'
 
     @classmethod
     def from_xml(cls, xml_str, hints=None):
@@ -443,11 +465,11 @@ class User(Resource):
         without a tenant gets authenticated to this tenant.
     """
     def __init__(self, id=None, password=None, name=None,
-                 default_tenant_id=None,
+                 tenant_id=None,
                  email=None, enabled=None,
                  *args, **kw):
         super(User, self).__init__(id=id, password=password, name=name,
-                        default_tenant_id=default_tenant_id, email=email,
+                        tenant_id=tenant_id, email=email,
                         enabled=enabled, *args, **kw)
 
 
@@ -495,3 +517,12 @@ class Token(Resource):
     def __init__(self, id=None, expires=None, tenant_id=None, *args, **kw):
         super(Token, self).__init__(id=id, expires=expires,
                                     tenant_id=tenant_id, *args, **kw)
+
+
+class UserRoleAssociation(Resource):
+    """ Role Grant model """
+    def __init__(self, user_id=None, role_id=None, tenant_id=None,
+                 *args, **kw):
+        super(UserRoleAssociation, self).__init__(user_id=user_id,
+                                    role_id=role_id, tenant_id=tenant_id,
+                                    *args, **kw)
