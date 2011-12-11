@@ -343,6 +343,7 @@ class IdentityService(object):
         
         Loads all necessary backends to handle incoming requests.
         """
+        backends.configure_backends(options)
         self.token_manager = TokenManager(options)
         self.tenant_manager = TenantManager(options)
 
@@ -521,7 +522,6 @@ class IdentityService(object):
         for dtenant in dtenants:
             t = Tenant(id=dtenant.id, name=dtenant.name,
                 description=dtenant.desc, enabled=dtenant.enabled)
-            print t
             ts.append(t)
 
         links = self.get_links(url, prev_page, next_page, limit)

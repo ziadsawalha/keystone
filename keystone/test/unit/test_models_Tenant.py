@@ -49,6 +49,9 @@ class TestModelsTenant(unittest.TestCase):
         self.assertIn('enabled', d1['tenant'])
         self.assertEquals(d1['tenant']['enabled'], 'false')
 
+        tenant = Tenant(id=36, name="the tenant", enabled='false', blank=None)
+        self.assertEquals(tenant.enabled, 'false')
+
     def test_tenant_json_serialization(self):
         tenant = Tenant(id=3, name="the tenant", enabled=True, blank=None)
         tenant["dynamic"] = "test"

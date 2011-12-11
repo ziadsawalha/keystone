@@ -19,6 +19,7 @@
 from keystone import utils
 import keystone.backends.api as api
 
+
 class Manager(object):
     def __init__(self, options):
         self.options = options
