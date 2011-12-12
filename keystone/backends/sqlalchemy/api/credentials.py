@@ -34,7 +34,9 @@ class CredentialsAPI(api.BaseCredentialsAPI):
         return models.Credentials(id=ref.id, user_id=ref.user_id,
             tenant_id=tenant_uid, type=ref.type, key=ref.key, secret=ref.secret)
 
-    to_model_list = lambda refs: [CredentialsAPI.to_model(ref) for ref in refs]
+    @staticmethod
+    def to_model_list(refs):
+        return [CredentialsAPI.to_model(ref) for ref in refs]
 
     def create(self, values):
         CredentialsAPI.transpose(values)

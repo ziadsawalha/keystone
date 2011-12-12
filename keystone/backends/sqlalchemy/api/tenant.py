@@ -51,7 +51,9 @@ class TenantAPI(api.BaseTenantAPI):
         if ref:
             return Tenant(id=ref.uid, description=ref.desc, enabled=str(ref.enabled).lower(), name=ref.name)
 
-    to_model_list = lambda refs: [TenantAPI.to_model(ref) for ref in refs]
+    @staticmethod
+    def to_model_list(refs):
+        return [TenantAPI.to_model(ref) for ref in refs]
 
     def create(self, values):
         TenantAPI.transpose(values)
