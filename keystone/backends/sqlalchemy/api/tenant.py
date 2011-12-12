@@ -15,7 +15,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import json
+import uuid
+import logging
 
 from keystone.backends.sqlalchemy import get_session, models, aliased
 from keystone.backends.api import BaseTenantAPI
@@ -27,7 +28,7 @@ class TenantAPI(BaseTenantAPI):
     def transpose(values):
         """ Handles transposing field names from Keystone model to
         sqlalchemy mode
-        
+
         Differences:
             desc <-> description
             id <-> uid (coming soon)
@@ -43,7 +44,7 @@ class TenantAPI(BaseTenantAPI):
     @staticmethod
     def to_model(tenant_ref):
         """ Returns Keystone model object based on SQLAlchemy model"""
-        tenant = Tenant(id=str(tenant_ref["id"]),
+        tenant = Tenant(id=tenant_ref["uid"],
                         description=tenant_ref["desc"],
                         enabled=str(tenant_ref["enabled"]).lower(),
                         name=tenant_ref["name"])
@@ -53,12 +54,18 @@ class TenantAPI(BaseTenantAPI):
         tenant_ref = models.Tenant()
         TenantAPI.transpose(values)
         tenant_ref.update(values)
+        tenant_ref.uid = uuid.uuid4().hex
         tenant_ref.save()
         return TenantAPI.to_model(tenant_ref)
 
     def get(self, id, session=None):
         session = session or get_session()
-        return session.query(models.Tenant).filter_by(id=id).first()
+        try:
+            id = int(id)
+            logging.warning('Querying tenant by ID: %s' % id)
+            return session.query(models.Tenant).filter_by(id=id).first()
+        except ValueError:
+            return session.query(models.Tenant).filter_by(uid=id).first()
 
     def get_by_name(self, name, session=None):
         session = session or get_session()
