@@ -16,10 +16,10 @@
 #    under the License.
 
 from keystone.backends.sqlalchemy import get_session, models
-from keystone.backends.api import BaseServiceAPI
+from keystone.backends import api
 
 
-class ServiceAPI(BaseServiceAPI):
+class ServiceAPI(api.BaseServiceAPI):
     def __init__(self):
         pass
 

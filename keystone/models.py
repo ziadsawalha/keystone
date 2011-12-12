@@ -65,7 +65,6 @@ The uses supported are:
 import json
 
 from lxml import etree
-from UserDict import UserDict, IterableUserDict, DictMixin
 
 from keystone.utils import fault
 
@@ -514,8 +513,8 @@ class Role(Resource):
 
 class Token(Resource):
     """ Token model """
-    def __init__(self, id=None, expires=None, tenant_id=None, *args, **kw):
-        super(Token, self).__init__(id=id, expires=expires,
+    def __init__(self, id=None, user_id=None, expires=None, tenant_id=None, *args, **kw):
+        super(Token, self).__init__(id=id, user_id=user_id, expires=expires,
                                     tenant_id=tenant_id, *args, **kw)
 
 
@@ -526,3 +525,11 @@ class UserRoleAssociation(Resource):
         super(UserRoleAssociation, self).__init__(user_id=user_id,
                                     role_id=role_id, tenant_id=tenant_id,
                                     *args, **kw)
+
+
+class Credentials(Resource):
+    def __init__(self, id=None, user_id=None, tenant_id=None, type=None,
+            key=None, secret=None, *args, **kw):
+        super(Credentials, self).__init__(id=id, user_id=user_id,
+            tenant_id=tenant_id, type=type, key=key, secret=secret, *args,
+            **kw)

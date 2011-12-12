@@ -18,55 +18,87 @@
 import keystone.backends.backendutils as utils
 from keystone.backends.sqlalchemy import get_session, models, aliased, \
     joinedload
-from keystone.backends.api import BaseUserAPI
+from keystone.backends import api
+from keystone.models import User
 
 
-class UserAPI(BaseUserAPI):
+class UserAPI(api.BaseUserAPI):
+    @staticmethod
+    def transpose(values):
+        """ Transposes field names from domain to sql model"""
+        values['tenant_id'] = api.TENANT._uid_to_id(values['tenant_id'])
+
+    @staticmethod
+    def to_model(ref):
+        """ Returns Keystone model object based on SQLAlchemy model"""
+        if ref:
+            tenant_uid = api.TENANT._id_to_uid(ref.tenant_id)
+
+            return User(id=ref.id, password=ref.password, name=ref.name,
+                tenant_id=tenant_uid, email=ref.email, enabled=ref.enabled)
+
+    to_model_list = lambda refs: [UserAPI.to_model(ref) for ref in refs]
+
     # pylint: disable=W0221
     def get_all(self, session=None):
         if not session:
             session = get_session()
-        return session.query(models.User)
+
+        results = session.query(models.User)
+
+        return UserAPI.to_model_list(results, session)
 
     def create(self, values):
         user_ref = models.User()
+        UserAPI.transpose(values)
         utils.set_hashed_password(values)
         user_ref.update(values)
         user_ref.save()
-        return user_ref
+        return UserAPI.to_model(user_ref)
 
     def get(self, id, session=None):
         if not session:
             session = get_session()
-        user = session.query(models.User).filter_by(id=id).first()
 
-        return user or self.get_by_name(id, session)
+        user = session.query(models.User).filter_by(id=id).first()
+        result = user or self.get_by_name(id, session)
+
+        return UserAPI.to_model(result)
 
     def get_by_name(self, name, session=None):
         if not session:
             session = get_session()
-        return session.query(models.User).filter_by(name=name).first()
+
+        result = session.query(models.User).filter_by(name=name).first()
+
+        return UserAPI.to_model(result)
 
     def get_by_email(self, email, session=None):
         if not session:
             session = get_session()
-        return session.query(models.User).filter_by(email=email).first()
+
+        result = session.query(models.User).filter_by(email=email).first()
+
+        return UserAPI.to_model(result)
 
     def get_page(self, marker, limit, session=None):
         if not session:
             session = get_session()
 
         if marker:
-            return session.query(models.User).filter("id>:marker").params(\
+            results = session.query(models.User).filter("id>:marker").params(\
                     marker='%s' % marker).order_by(\
                     models.User.id.desc()).limit(limit).all()
         else:
-            return session.query(models.User).order_by(\
+            results = session.query(models.User).order_by(\
                                 models.User.id.desc()).limit(limit).all()
+
+        return UserAPI.to_model_list(results)
 
     def get_page_markers(self, marker, limit, session=None):
         if not session:
             session = get_session()
+
         first = session.query(models.User).order_by(\
                             models.User.id).first()
         last = session.query(models.User).order_by(\
@@ -104,23 +136,33 @@ class UserAPI(BaseUserAPI):
     def user_roles_by_tenant(self, user_id, tenant_id, session=None):
         if not session:
             session = get_session()
+
+        tenant_id = api.TENANT._uid_to_id(tenant_id)
+
         result = session.query(models.UserRoleAssociation).\
             filter_by(user_id=user_id, tenant_id=tenant_id).\
             options(joinedload('roles'))
+
+        result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
+
         return result
 
     def update(self, id, values, session=None):
         if not session:
             session = get_session()
+
+        UserAPI.transpose(values)
+
         with session.begin():
             user_ref = self.get(id, session)
             utils.set_hashed_password(values)
             user_ref.update(values)
-            user_ref.save(session=session)
+            user_ref.save()
 
     def delete(self, id, session=None):
         if not session:
             session = get_session()
+
         with session.begin():
             user_ref = self.get(id, session)
             session.delete(user_ref)
@@ -128,11 +170,14 @@ class UserAPI(BaseUserAPI):
     def get_by_tenant(self, id, tenant_id, session=None):
         if not session:
             session = get_session()
+
+        tenant_id = api.TENANT._uid_to_id(tenant_id)
+
         # Most common use case: user lives in tenant
         user = session.query(models.User).\
                         filter_by(id=id, tenant_id=tenant_id).first()
         if user:
-            return user
+            return UserAPI.to_model(user)
 
         # Find user through grants to this tenant
         result = session.query(models.UserRoleAssociation).\
@@ -145,6 +190,9 @@ class UserAPI(BaseUserAPI):
     def delete_tenant_user(self, id, tenant_id, session=None):
         if not session:
             session = get_session()
+
+        tenant_id = api.TENANT._uid_to_id(tenant_id)
+
         with session.begin():
             users_tenant_ref = self.users_get_by_tenant(id, tenant_id, session)
             if users_tenant_ref is not None:
@@ -154,33 +202,45 @@ class UserAPI(BaseUserAPI):
     def users_get_by_tenant(self, user_id, tenant_id, session=None):
         if not session:
             session = get_session()
-        result = session.query(models.User).filter_by(id=user_id,
+
+        results = session.query(models.User).filter_by(id=user_id,
                                                       tenant_id=tenant_id)
-        return result
+        return UserAPI.to_model_list(results)
 
     def user_role_add(self, values):
+        values['tenant_id'] = api.TENANT._uid_to_id(values['tenant_id'])
+
         user_role_ref = models.UserRoleAssociation()
         user_role_ref.update(values)
         user_role_ref.save()
+
+        user_role_ref.tenant_id = api.TENANT._uid_to_id(user_role_ref.tenant_id)
+
         return user_role_ref
 
     def user_get_update(self, id, session=None):
         if not session:
             session = get_session()
-        return session.query(models.User).filter_by(id=id).first()
+
+        result = session.query(models.User).filter_by(id=id).first()
+
+        return UserAPI.to_model(result)
 
     def users_get_page(self, marker, limit, session=None):
         if not session:
             session = get_session()
+
         user = aliased(models.User)
         if marker:
-            return session.query(user).\
+            results = session.query(user).\
                                 filter("id>=:marker").params(
                                 marker='%s' % marker).order_by(
                                 "id").limit(limit).all()
         else:
-            return session.query(user).\
+            results = session.query(user).\
                                 order_by("id").limit(limit).all()
+
+        return UserAPI.to_model_list(results)
 
     def users_get_page_markers(self, marker, limit, \
             session=None):
@@ -233,6 +293,9 @@ class UserAPI(BaseUserAPI):
         # Also the user lookup is nasty and potentially injectiable.
         if not session:
             session = get_session()
+
+        tenant_id = api.TENANT._uid_to_id(tenant_id)
+
         user = aliased(models.UserRoleAssociation)
         query = session.query(user).\
             filter("tenant_id = :tenant_id").\
@@ -258,17 +321,22 @@ class UserAPI(BaseUserAPI):
         users = session.query(models.User).\
                       filter("id in ('%s')" % "','".join(user_ids)).\
                       all()
+
         for usr in users:
             usr.tenant_roles = set()
             for role in usr.roles:
                 if role.tenant_id == tenant_id:
                     usr.tenant_roles.add(role.role_id)
-        return users
+
+        return UserAPI.to_model_list(users)
 
     def users_get_by_tenant_get_page_markers(self, tenant_id, \
             role_id, marker, limit, session=None):
         if not session:
             session = get_session()
+
+        tenant_id = api.TENANT._uid_to_id(tenant_id)
+
         user = aliased(models.UserRoleAssociation)
         query = session.query(user).\
                         filter(user.tenant_id == tenant_id)
