@@ -126,11 +126,13 @@ class TenantAPI(api.BaseTenantAPI):
         q2 = session.query(tenant).filter(tenant.id == user.tenant_id)
         q3 = q1.union(q2)
         if marker:
-            return q3.filter("tenant.id>:marker").params(\
+            results = q3.filter("tenant.id>:marker").params(\
                     marker='%s' % marker).order_by(\
                     tenant.id.desc()).limit(limit).all()
         else:
-            return q3.order_by(tenant.id.desc()).limit(limit).all()
+            results = q3.order_by(tenant.id.desc()).limit(limit).all()
+
+        return TenantAPI.to_model_list(results)
 
     def tenants_for_user_get_page_markers(self, user, marker, limit,
             session=None):
