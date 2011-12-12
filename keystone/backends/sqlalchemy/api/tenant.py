@@ -289,7 +289,8 @@ class TenantAPI(api.BaseTenantAPI):
         results = q.all()
 
         for result in results:
-           result.tenant_id = TenantAPI._id_to_uid(result.tenant_id)
+            if isinstance(result, models.Endpoints):
+                result.tenant_id = TenantAPI._id_to_uid(result.tenant_id)
 
         return results
 
