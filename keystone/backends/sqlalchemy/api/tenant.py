@@ -46,13 +46,10 @@ class TenantAPI(api.BaseTenantAPI):
                 values['enabled'] = 0
 
     @staticmethod
-    def to_model(tenant_ref):
+    def to_model(ref):
         """ Returns Keystone model object based on SQLAlchemy model"""
-        tenant = Tenant(id=tenant_ref.uid,
-                        description=tenant_ref.desc,
-                        enabled=str(tenant_ref.enabled).lower(),
-                        name=tenant_ref.name)
-        return tenant
+        if ref:
+            return Tenant(id=ref.uid, description=ref.desc, enabled=str(ref.enabled).lower(), name=ref.name)
 
     to_model_list = lambda refs: [TenantAPI.to_model(ref) for ref in refs]
 
