@@ -34,7 +34,9 @@ class TokenAPI(api.BaseTokenAPI):
 
             return Token(id=ref.id, user_id=ref.user_id, expires=ref.expires, tenant_id=tenant_uid)
 
-    to_model_list = lambda refs: [TokenAPI.to_model(ref) for ref in refs]
+    @staticmethod
+    def to_model_list(refs):
+        return [TokenAPI.to_model(ref) for ref in refs]
 
     def create(self, values):
         TokenAPI.transpose(values)

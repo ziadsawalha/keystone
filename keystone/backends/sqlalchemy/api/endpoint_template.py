@@ -30,7 +30,9 @@ class EndpointTemplateAPI(api.BaseEndpointTemplateAPI):
         """ Returns Keystone model object based on SQLAlchemy model"""
         pass
 
-    to_model_list = lambda refs: [EndpointTemplateAPI.to_model(ref) for ref in refs]
+    @staticmethod
+    def to_model_list(refs):
+        return [EndpointTemplateAPI.to_model(ref) for ref in refs]
 
     def create(self, values):
         endpoint_template = models.EndpointTemplates()

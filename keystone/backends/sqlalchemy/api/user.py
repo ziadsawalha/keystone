@@ -37,7 +37,9 @@ class UserAPI(api.BaseUserAPI):
             return User(id=ref.id, password=ref.password, name=ref.name,
                 tenant_id=tenant_uid, email=ref.email, enabled=ref.enabled)
 
-    to_model_list = lambda refs: [UserAPI.to_model(ref) for ref in refs]
+    @staticmethod
+    def to_model_list(refs):
+        return [UserAPI.to_model(ref) for ref in refs]
 
     # pylint: disable=W0221
     def get_all(self, session=None):
