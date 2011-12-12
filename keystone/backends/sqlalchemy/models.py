@@ -125,7 +125,7 @@ class Tenant(Base, KeystoneBase):
     __tablename__ = 'tenants'
     __api__ = 'tenant'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    # uid = Column(String(255), unique=True, nullable=False)
+    uid = Column(String(255), unique=True, nullable=False)
     name = Column(String(255), unique=True)
     desc = Column(String(255))
     enabled = Column(Integer)
