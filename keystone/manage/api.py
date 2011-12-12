@@ -35,7 +35,7 @@ def add_tenant(name):
     obj = db_models.Tenant()
     obj.name = name
     obj.enabled = True
-    return db_api.TENANT.create(obj)
+    db_api.TENANT.create(obj)
 
 
 def list_tenants():
@@ -56,8 +56,7 @@ def disable_tenant(name):
 def add_role(name):
     obj = db_models.Role()
     obj.name = name
-    role = db_api.ROLE.create(obj)
-    return role
+    return db_api.ROLE.create(obj)
 
 
 def list_role_assignments(tenant):

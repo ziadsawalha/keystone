@@ -16,10 +16,10 @@
 #    under the License.
 
 from keystone.backends.sqlalchemy import get_session, models
-from keystone.backends.api import BaseRoleAPI
+from keystone.backends import api
 
 
-class RoleAPI(BaseRoleAPI):
+class RoleAPI(api.BaseRoleAPI):
     # pylint: disable=W0221
     def create(self, values):
         role = models.Role()
@@ -71,6 +71,7 @@ class RoleAPI(BaseRoleAPI):
     def ref_get_page(self, marker, limit, user_id, tenant_id, session=None):
         if not session:
             session = get_session()
+
         query = session.query(models.UserRoleAssociation).\
                 filter_by(user_id=user_id)
         if tenant_id:
@@ -149,9 +150,12 @@ class RoleAPI(BaseRoleAPI):
         return (prev_page, next_page)
 
     def ref_get_page_markers(self, user_id, tenant_id, marker,
-        limit, session=None):
+            limit, session=None):
         if not session:
             session = get_session()
+
+        tenant_id = api.TENANT._uid_to_id(tenant_id)
+
         query = session.query(models.UserRoleAssociation).filter_by(\
                                             user_id=user_id)
         if tenant_id:
@@ -209,6 +213,9 @@ class RoleAPI(BaseRoleAPI):
     def ref_get_by_user(self, user_id, role_id, tenant_id, session=None):
         if not session:
             session = get_session()
+
+        tenant_id = api.TENANT._uid_to_id(tenant_id)
+
         if tenant_id is None:
             result = session.query(models.UserRoleAssociation).\
                 filter_by(user_id=user_id).filter("tenant_id is null").\

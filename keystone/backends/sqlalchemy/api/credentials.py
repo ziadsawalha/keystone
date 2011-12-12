@@ -16,36 +16,59 @@
 #    under the License.
 
 from keystone.backends.sqlalchemy import get_session, models
-from keystone.backends.api import BaseCredentialsAPI
+from keystone.backends import api
+from keystone import models
 
 
-class CredentialsAPI(BaseCredentialsAPI):
+class CredentialsAPI(api.BaseCredentialsAPI):
+    @staticmethod
+    def transpose(values):
+        """ Transposes field names from domain to sql model"""
+        values['tenant_id'] = api.TENANT._uid_to_id(values['tenant_id'])
+
+    @staticmethod
+    def to_model(ref):
+        """ Returns Keystone model object based on SQLAlchemy model"""
+        tenant_uid = api.TENANT._id_to_uid(ref.tenant_id)
+
+        return models.Credentials(id=ref.id, user_id=ref.user_id,
+            tenant_id=tenant_uid, type=ref.type, key=ref.key, secret=ref.secret)
+
+    to_model_list = lambda refs: [CredentialsAPI.to_model(ref) for ref in refs]
+
     def create(self, values):
+        CredentialsAPI.transpose(values)
+
         credentials_ref = models.Credentials()
         credentials_ref.update(values)
         credentials_ref.save()
-        return credentials_ref
+
+        return CredentialsAPI.to_model(credentials_ref)
 
     def get(self, id, session=None):
         if not session:
             session = get_session()
+
         result = session.query(models.Credentials).filter_by(id=id).first()
-        return result
+
+        return CredentialsAPI.to_model(result)
 
     def get_by_access(self, access, session=None):
         if not session:
             session = get_session()
+
         result = session.query(models.Credentials).\
                          filter_by(type="EC2", key=access).first()
-        return result
+
+        return CredentialsAPI.to_model(result)
 
     def delete(self, id, session=None):
         if not session:
             session = get_session()
+
         with session.begin():
             group_ref = self.get(id, session)
             session.delete(group_ref)
-
 
 def get():
     return CredentialsAPI()
