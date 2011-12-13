@@ -900,6 +900,7 @@ class IdentityService(object):
     def remove_role_from_user(self, admin_token,
         user_id, role_id, tenant_id=None):
         validate_service_admin_token(admin_token)
+        print user_id, role_id, tenant_id
         drole_ref = api.ROLE.ref_get_by_user(user_id, role_id, tenant_id)
         if drole_ref is None:
             raise fault.ItemNotFoundFault(

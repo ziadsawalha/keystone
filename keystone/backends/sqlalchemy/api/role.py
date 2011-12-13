@@ -72,8 +72,7 @@ class RoleAPI(api.BaseRoleAPI):
         if not session:
             session = get_session()
 
-        if isinstance(api.TENANT, models.Tenant):
-            tenant_id = api.TENANT._uid_to_id(tenant_id)
+        tenant_id = api.TENANT._uid_to_id(tenant_id)
 
         query = session.query(models.UserRoleAssociation).\
                 filter_by(user_id=user_id)
@@ -99,15 +98,13 @@ class RoleAPI(api.BaseRoleAPI):
         if not session:
             session = get_session()
 
-        if isinstance(api.TENANT, models.Tenant):
-            tenant_id = api.TENANT._uid_to_id(tenant_id)
+        tenant_id = api.TENANT._uid_to_id(tenant_id)
 
         results = session.query(models.UserRoleAssociation).\
                 filter_by(user_id=user_id).filter_by(tenant_id=tenant_id).all()
 
-        if isinstance(api.TENANT, models.Tenant):
-            for result in results:
-                result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
+        for result in results:
+            result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
 
         return results
 
@@ -118,8 +115,7 @@ class RoleAPI(api.BaseRoleAPI):
         result = session.query(models.UserRoleAssociation).filter_by(id=id).\
             first()
 
-        if isinstance(api.TENANT, models.Tenant):
-            result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
+        result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
 
         return result
 
@@ -173,8 +169,7 @@ class RoleAPI(api.BaseRoleAPI):
         if not session:
             session = get_session()
 
-        if isinstance(api.TENANT, models.Tenant):
-            tenant_id = api.TENANT._uid_to_id(tenant_id)
+        tenant_id = api.TENANT._uid_to_id(tenant_id)
 
         query = session.query(models.UserRoleAssociation).filter_by(\
                                             user_id=user_id)
@@ -230,9 +225,8 @@ class RoleAPI(api.BaseRoleAPI):
         results = session.query(models.UserRoleAssociation).\
             filter_by(role_id=role_id).all()
 
-        if isinstance(api.TENANT, models.Tenant):
-            for result in results:
-                result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
+        for result in results:
+            result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
 
         return results
 
@@ -240,8 +234,7 @@ class RoleAPI(api.BaseRoleAPI):
         if not session:
             session = get_session()
 
-        if isinstance(api.TENANT, models.Tenant):
-            tenant_id = api.TENANT._uid_to_id(tenant_id)
+        tenant_id = api.TENANT._uid_to_id(tenant_id)
 
         if tenant_id is None:
             result = session.query(models.UserRoleAssociation).\
@@ -252,9 +245,8 @@ class RoleAPI(api.BaseRoleAPI):
                 filter_by(user_id=user_id).filter_by(tenant_id=tenant_id).\
                 filter_by(role_id=role_id).first()
 
-        if isinstance(api.TENANT, models.Tenant):
-            if result:
-                result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
+        if result:
+            result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
 
         return result
 
