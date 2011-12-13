@@ -269,7 +269,7 @@ class TenantAPI(api.BaseTenantAPI):
         id = self._uid_to_id(id)
 
         with session.begin():
-            tenant_ref = self.get(id, session)
+            tenant_ref = self._get_by_id(id, session)
             session.delete(tenant_ref)
 
     def get_all_endpoints(self, tenant_id, session=None):
