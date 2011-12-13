@@ -2,6 +2,7 @@ import datetime
 
 import keystone.backends.api as db_api
 import keystone.backends.models as db_models
+import keystone.models as models
 
 
 def add_user(name, password, tenant=None):
@@ -32,7 +33,7 @@ def list_users():
 
 
 def add_tenant(name):
-    obj = db_models.Tenant()
+    obj = models.Tenant()
     obj.name = name
     obj.enabled = True
     db_api.TENANT.create(obj)
