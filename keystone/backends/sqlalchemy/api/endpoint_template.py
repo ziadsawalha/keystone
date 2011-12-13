@@ -317,8 +317,6 @@ class EndpointTemplateAPI(api.BaseEndpointTemplateAPI):
         result = session.query(models.Endpoints).\
             filter_by(endpoint_template_id=endpoint_template_id).all()
 
-        result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
-
         return result
 
     def endpoint_delete(self, id, session=None):
