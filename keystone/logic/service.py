@@ -451,10 +451,7 @@ class IdentityService(object):
             dtoken.user_id = duser.id
             dtoken.tenant_id = tenant_id
             dtoken.expires = datetime.now() + timedelta(days=1)
-            print "B", dtoken
             dtoken = api.TOKEN.create(dtoken)
-            print "A", dtoken
-        print get_auth_data(dtoken).to_json()
         return get_auth_data(dtoken)
 
     def validate_token(self, admin_token, token_id, belongs_to=None):
@@ -749,15 +746,12 @@ class IdentityService(object):
 
     def set_user_tenant(self, admin_token, user_id, user):
         validate_admin_token(admin_token)
+
         duser = api.USER.get(user_id)
         if not duser:
             raise fault.ItemNotFoundFault("The user could not be found")
         if not isinstance(user, User):
             raise fault.BadRequestFault("Expecting a User")
-
-        duser = api.USER.get(user_id)
-        if duser is None:
-            raise fault.ItemNotFoundFault("The user could not be found")
 
         self.validate_and_fetch_user_tenant(user.tenant_id)
         values = {'tenant_id': user.tenant_id}

@@ -49,7 +49,7 @@ class TenantAPI(api.BaseTenantAPI):
     def to_model(ref):
         """ Returns Keystone model object based on SQLAlchemy model"""
         if ref:
-            return Tenant(id=ref.uid, description=ref.desc, enabled=str(ref.enabled).lower(), name=ref.name)
+            return Tenant(id=ref.uid, description=ref.desc, enabled=bool(ref.enabled), name=ref.name)
 
     @staticmethod
     def to_model_list(refs):

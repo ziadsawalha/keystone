@@ -29,11 +29,11 @@ class UserAPI(api.BaseUserAPI):
         if hasattr(values, 'tenant_id'):
             values.tenant_id = api.TENANT._uid_to_id(values.tenant_id)
 
-        if 'enabled' in values:
-            if values['enabled'] in [1, 'true', 'True', True]:
-                values['enabled'] = 1
+        if hasattr(values, 'enabled'):
+            if values.enabled in [1, 'true', 'True', True]:
+                values.enabled = 1
             else:
-                values['enabled'] = 0
+                values.enabled = 0
 
     @staticmethod
     def to_model(ref):
@@ -69,8 +69,7 @@ class UserAPI(api.BaseUserAPI):
         if not session:
             session = get_session()
 
-        user = session.query(models.User).filter_by(id=id).first()
-        result = user or self.get_by_name(id, session)
+        result = session.query(models.User).filter_by(id=id).first()
 
         return UserAPI.to_model(result)
 
@@ -174,7 +173,7 @@ class UserAPI(api.BaseUserAPI):
         UserAPI.transpose(values)
 
         with session.begin():
-            user_ref = session.query(models.User).filter_by(id=id).first()
+            user_ref = self._get_by_id(id, session)
             utils.set_hashed_password(values)
             user_ref.update(values)
             user_ref.save(session=session)

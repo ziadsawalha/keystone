@@ -409,12 +409,6 @@ class Tenant(Resource):
                                       *args, **kw)
         if isinstance(self.id, int):
             self.id = str(self.id)
-        if "enabled" in self:
-            if self.enabled is not None:
-                if str(self.enabled).lower() in ['1', 'true']:
-                    self.enabled = 'true'
-                else:
-                    self.enabled = 'false'
 
     @classmethod
     def from_xml(cls, xml_str, hints=None):
