@@ -74,6 +74,17 @@ class UserAPI(api.BaseUserAPI):
 
         return UserAPI.to_model(result)
 
+    def _get_by_id(self, id, session=None):
+        """Only for use by the sql backends
+
+        - Queries by PK ID
+        - Doesn't wrap result with domain layer models
+        """
+        if not session:
+            session = get_session()
+
+        return session.query(models.User).filter_by(id=id).first()
+
     def get_by_name(self, name, session=None):
         if not session:
             session = get_session()
@@ -173,7 +184,7 @@ class UserAPI(api.BaseUserAPI):
             session = get_session()
 
         with session.begin():
-            user_ref = self.get(id, session)
+            user_ref = self._get_by_id(id, session)
             session.delete(user_ref)
 
     def get_by_tenant(self, id, tenant_id, session=None):
