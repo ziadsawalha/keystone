@@ -15,6 +15,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import uuid
+
 import keystone.backends.backendutils as utils
 from keystone.backends.sqlalchemy import get_session, models, aliased, \
     joinedload
@@ -62,6 +64,8 @@ class UserAPI(api.BaseUserAPI):
         UserAPI.transpose(values)
         utils.set_hashed_password(values)
         user_ref.update(values)
+        if user_ref.uid is None:
+            user_ref.uid = uuid.uuid4().hex
         user_ref.save()
         return UserAPI.to_model(user_ref)
 
