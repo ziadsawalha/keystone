@@ -292,7 +292,8 @@ class EndpointTemplateAPI(api.BaseEndpointTemplateAPI):
         result = session.query(models.Endpoints).\
             filter_by(id=id).first()
 
-        result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
+        if result:
+            result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
 
         return result
 
@@ -305,7 +306,8 @@ class EndpointTemplateAPI(api.BaseEndpointTemplateAPI):
         result = session.query(models.Endpoints).\
                         filter_by(tenant_id=tenant_id).first()
 
-        result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
+        if result:
+            result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
 
         return result
 
