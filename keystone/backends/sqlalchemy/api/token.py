@@ -24,20 +24,21 @@ class TokenAPI(api.BaseTokenAPI):
     @staticmethod
     def transpose(values):
         """ Transposes field names from domain to sql model"""
-        values['tenant_id'] = api.TENANT._uid_to_id(values['tenant_id'])
+        if isinstance(api.TENANT, models.Tenant):
+            values['tenant_id'] = api.TENANT._uid_to_id(values['tenant_id'])
 
     @staticmethod
     def to_model(ref):
         """ Returns Keystone model object based on SQLAlchemy model"""
         if ref:
-            tenant_uid = None
-            
-            if 'tenant_id' in ref:
-                tenant_uid = api.TENANT._id_to_uid(ref['tenant_id'])
-            elif hasattr(ref, 'tenant_id'):
-                tenant_uid = api.TENANT._id_to_uid(ref.tenant_id)
+            if isinstance(api.TENANT, models.Tenant):
+                if 'tenant_id' in ref:
+                    ref['tenant_id'] = api.TENANT._id_to_uid(ref['tenant_id'])
+                elif hasattr(ref, 'tenant_id'):
+                    ref.tenant_id = api.TENANT._id_to_uid(ref.tenant_id)
 
-            return Token(id=ref.id, user_id=ref.user_id, expires=ref.expires, tenant_id=tenant_uid)
+            return Token(id=ref.id, user_id=ref.user_id, expires=ref.expires,
+                         tenant_id=ref.tenant_id)
 
     @staticmethod
     def to_model_list(refs):
