@@ -80,7 +80,8 @@ class TokenAPI(api.BaseTokenAPI):
         if not session:
             session = get_session()
 
-        user_id = api.USER._uid_to_id(user_id)
+        if isinstance(api.USER, models.User):
+            user_id = api.USER._uid_to_id(user_id)
 
         result = session.query(models.Token).filter_by(
             user_id=user_id, tenant_id=None).order_by("expires desc").first()
@@ -91,7 +92,8 @@ class TokenAPI(api.BaseTokenAPI):
         if not session:
             session = get_session()
 
-        user_id = api.USER._uid_to_id(user_id)
+        if isinstance(api.USER, models.User):
+            user_id = api.USER._uid_to_id(user_id)
 
         result = session.query(models.Token).\
             filter_by(user_id=user_id, tenant_id=tenant_id).\
