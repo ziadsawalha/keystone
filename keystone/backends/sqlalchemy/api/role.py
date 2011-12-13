@@ -72,6 +72,8 @@ class RoleAPI(api.BaseRoleAPI):
         if not session:
             session = get_session()
 
+        tenant_id = api.TENANT._uid_to_id(tenant_id)
+
         query = session.query(models.UserRoleAssociation).\
                 filter_by(user_id=user_id)
         if tenant_id:
@@ -95,19 +97,32 @@ class RoleAPI(api.BaseRoleAPI):
     def ref_get_all_tenant_roles(self, user_id, tenant_id, session=None):
         if not session:
             session = get_session()
-        return session.query(models.UserRoleAssociation).\
+
+        tenant_id = api.TENANT._uid_to_id(tenant_id)
+
+        results = session.query(models.UserRoleAssociation).\
                 filter_by(user_id=user_id).filter_by(tenant_id=tenant_id).all()
+
+        for result in results:
+            result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
+
+        return results
 
     def ref_get(self, id, session=None):
         if not session:
             session = get_session()
+
         result = session.query(models.UserRoleAssociation).filter_by(id=id).\
             first()
+
+        result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
+
         return result
 
     def ref_delete(self, id, session=None):
         if not session:
             session = get_session()
+
         with session.begin():
             role_ref = self.ref_get(id, session)
             session.delete(role_ref)
@@ -206,8 +221,12 @@ class RoleAPI(api.BaseRoleAPI):
     def ref_get_by_role(self, role_id, session=None):
         if not session:
             session = get_session()
+
         result = session.query(models.UserRoleAssociation).\
             filter_by(role_id=role_id).all()
+
+        result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
+
         return result
 
     def ref_get_by_user(self, user_id, role_id, tenant_id, session=None):
@@ -224,6 +243,9 @@ class RoleAPI(api.BaseRoleAPI):
             result = session.query(models.UserRoleAssociation).\
                 filter_by(user_id=user_id).filter_by(tenant_id=tenant_id).\
                 filter_by(role_id=role_id).first()
+
+        result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
+
         return result
 
 
