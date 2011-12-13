@@ -72,6 +72,7 @@ class RoleAPI(api.BaseRoleAPI):
         if not session:
             session = get_session()
 
+        user_id = api.USER._uid_to_id(user_id)
         tenant_id = api.TENANT._uid_to_id(tenant_id)
 
         query = session.query(models.UserRoleAssociation).\
@@ -81,29 +82,46 @@ class RoleAPI(api.BaseRoleAPI):
         else:
             query = query.filter("tenant_id is null")
         if marker:
-            return query.filter("id>:marker").params(\
+            results = query.filter("id>:marker").params(\
                     marker='%s' % marker).order_by(\
                     models.UserRoleAssociation.id.desc()).limit(limit).all()
         else:
-            return query.order_by(\
+            results = query.order_by(\
                     models.UserRoleAssociation.id.desc()).limit(limit).all()
+
+        for result in results:
+            result.user_id = api.USER._id_to_uid(result.user_id)
+            result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
+
+        return results
 
     def ref_get_all_global_roles(self, user_id, session=None):
         if not session:
             session = get_session()
-        return session.query(models.UserRoleAssociation).\
+
+        user_id = api.USER._uid_to_id(user_id)
+
+        results = session.query(models.UserRoleAssociation).\
             filter_by(user_id=user_id).filter("tenant_id is null").all()
+
+        for result in results:
+            result.user_id = api.USER._id_to_uid(result.user_id)
+            result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
+
+        return results
 
     def ref_get_all_tenant_roles(self, user_id, tenant_id, session=None):
         if not session:
             session = get_session()
 
+        user_id = api.USER._uid_to_id(user_id)
         tenant_id = api.TENANT._uid_to_id(tenant_id)
 
         results = session.query(models.UserRoleAssociation).\
                 filter_by(user_id=user_id).filter_by(tenant_id=tenant_id).all()
 
         for result in results:
+            result.user_id = api.USER._id_to_uid(result.user_id)
             result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
 
         return results
@@ -115,7 +133,9 @@ class RoleAPI(api.BaseRoleAPI):
         result = session.query(models.UserRoleAssociation).filter_by(id=id).\
             first()
 
-        result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
+        if result:
+            result.user_id = api.USER._id_to_uid(result.user_id)
+            result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
 
         return result
 
@@ -169,6 +189,7 @@ class RoleAPI(api.BaseRoleAPI):
         if not session:
             session = get_session()
 
+        user_id = api.USER._uid_to_id(user_id)
         tenant_id = api.TENANT._uid_to_id(tenant_id)
 
         query = session.query(models.UserRoleAssociation).filter_by(\
@@ -226,6 +247,7 @@ class RoleAPI(api.BaseRoleAPI):
             filter_by(role_id=role_id).all()
 
         for result in results:
+            result.user_id = api.USER._id_to_uid(result.user_id)
             result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
 
         return results
@@ -234,6 +256,7 @@ class RoleAPI(api.BaseRoleAPI):
         if not session:
             session = get_session()
 
+        user_id = api.USER._uid_to_id(user_id)
         tenant_id = api.TENANT._uid_to_id(tenant_id)
 
         if tenant_id is None:
@@ -246,6 +269,7 @@ class RoleAPI(api.BaseRoleAPI):
                 filter_by(role_id=role_id).first()
 
         if result:
+            result.user_id = api.USER._id_to_uid(result.user_id)
             result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
 
         return result

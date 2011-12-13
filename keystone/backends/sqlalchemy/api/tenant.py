@@ -124,6 +124,7 @@ class TenantAPI(api.BaseTenantAPI):
         if not session:
             session = get_session()
 
+        user.id = api.USER._uid_to_id(user.id)
         user.tenant_id = api.TENANT._uid_to_id(user.tenant_id)
 
         ura = aliased(models.UserRoleAssociation)
@@ -146,6 +147,7 @@ class TenantAPI(api.BaseTenantAPI):
         if not session:
             session = get_session()
 
+        user.id = api.USER._uid_to_id(user.id)
         user.tenant_id = api.TENANT._uid_to_id(user.tenant_id)
 
         ura = aliased(models.UserRoleAssociation)
@@ -315,7 +317,8 @@ class TenantAPI(api.BaseTenantAPI):
             filter_by(tenant_id=tenant_id)
 
         for result in results:
-            result.tenant_id = TenantAPI._id_to_uid(result.tenant_id)
+            result.user_id = api.USER._id_to_uid(result.user_id)
+            result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
 
         return results
 
