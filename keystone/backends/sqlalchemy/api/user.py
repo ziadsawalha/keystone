@@ -26,8 +26,8 @@ class UserAPI(api.BaseUserAPI):
     @staticmethod
     def transpose(values):
         """ Transposes field names from domain to sql model"""
-        if 'tenant_id' in values:
-            values['tenant_id'] = api.TENANT._uid_to_id(values['tenant_id'])
+        if hasattr(values, 'tenant_id'):
+            values.tenant_id = api.TENANT._uid_to_id(values.tenant_id)
 
         if 'enabled' in values:
             if values['enabled'] in [1, 'true', 'True', True]:
@@ -183,17 +183,14 @@ class UserAPI(api.BaseUserAPI):
         tenant_id = api.TENANT._uid_to_id(tenant_id)
 
         # Most common use case: user lives in tenant
-        print id, tenant_id
         user = session.query(models.User).\
                         filter_by(id=id, tenant_id=tenant_id).first()
-        print 'user in tenant?', user is not None
         if user:
             return UserAPI.to_model(user)
 
         # Find user through grants to this tenant
         result = session.query(models.UserRoleAssociation).\
                          filter_by(tenant_id=tenant_id, user_id=id).first()
-        print 'user through grants?', result is not None
         if result:
             return self.get(id, session)
         else:
