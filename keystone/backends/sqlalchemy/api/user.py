@@ -29,6 +29,12 @@ class UserAPI(api.BaseUserAPI):
         if 'tenant_id' in values:
             values['tenant_id'] = api.TENANT._uid_to_id(values['tenant_id'])
 
+        if 'enabled' in values:
+            if values['enabled'] in [1, 'true', 'True', True]:
+                values['enabled'] = 1
+            else:
+                values['enabled'] = 0
+
     @staticmethod
     def to_model(ref):
         """ Returns Keystone model object based on SQLAlchemy model"""
@@ -157,10 +163,10 @@ class UserAPI(api.BaseUserAPI):
         UserAPI.transpose(values)
 
         with session.begin():
-            user_ref = self.get(id, session)
+            user_ref = session.query(models.User).filter_by(id=id).first()
             utils.set_hashed_password(values)
             user_ref.update(values)
-            user_ref.save()
+            user_ref.save(session=session)
 
     def delete(self, id, session=None):
         if not session:
