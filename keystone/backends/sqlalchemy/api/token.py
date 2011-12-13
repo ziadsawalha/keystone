@@ -30,7 +30,12 @@ class TokenAPI(api.BaseTokenAPI):
     def to_model(ref):
         """ Returns Keystone model object based on SQLAlchemy model"""
         if ref:
-            tenant_uid = api.TENANT._id_to_uid(ref.tenant_id)
+            tenant_uid = None
+            
+            if 'tenant_id' in ref:
+                tenant_uid = api.TENANT._id_to_uid(ref['tenant_id'])
+            elif hasattr(ref, 'tenant_id'):
+                tenant_uid = api.TENANT._id_to_uid(ref.tenant_id)
 
             return Token(id=ref.id, user_id=ref.user_id, expires=ref.expires, tenant_id=tenant_uid)
 
@@ -39,9 +44,10 @@ class TokenAPI(api.BaseTokenAPI):
         return [TokenAPI.to_model(ref) for ref in refs]
 
     def create(self, values):
-        TokenAPI.transpose(values)
+        data = values.copy()
+        TokenAPI.transpose(data)
         token_ref = models.Token()
-        token_ref.update(values)
+        token_ref.update(data)
         token_ref.save()
         return TokenAPI.to_model(token_ref)
 

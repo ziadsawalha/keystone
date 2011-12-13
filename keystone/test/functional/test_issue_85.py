@@ -19,6 +19,7 @@ class TestIssue85(common.FunctionalTestCase):
             tenant['id']).json['access']['token']['id']
 
         # Validate and check that token belongs to tenant
+        print self.get_token(user_token).body
         tenant_id = self.get_token(user_token).\
             json['access']['token']['tenant']['id']
         self.assertEqual(tenant_id, tenant['id'])

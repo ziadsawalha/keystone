@@ -29,6 +29,19 @@ class TestModels(unittest.TestCase):
         except:
             self.assert_(False, "Invalid attribute on resource should fail")
 
+    def test_resource_keys(self):
+        resource = Resource(id=1, name="the resource", blank=None)
+        self.assertEquals(resource.id, 1)
+        self.assertEquals(resource['id'], 1)
+
+        self.assertTrue('id' in resource)
+        self.assertTrue(hasattr(resource, 'id'))
+
+        resource['dynamic'] = '1'
+        self.assertEquals(resource['dynamic'], '1')
+
+        self.assertTrue('dynamic' in resource)
+
     def test_resource_dynamic_properties(self):
         resource = Resource(id=1, name="the resource", blank=None)
         resource["dynamic"] = "test"
