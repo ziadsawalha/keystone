@@ -18,6 +18,7 @@
 from keystone.backends.sqlalchemy import get_session, models
 from keystone.backends import api
 from keystone.models import Credentials
+from keystone.logic.types import fault
 
 
 class CredentialsAPI(api.BaseCredentialsAPI):
@@ -40,10 +41,16 @@ class CredentialsAPI(api.BaseCredentialsAPI):
         return [CredentialsAPI.to_model(ref) for ref in refs]
 
     def create(self, values):
-        CredentialsAPI.transpose(values)
+        data = values.copy()
+        CredentialsAPI.transpose(data)
+
+        if 'tenant_id' in values:
+            if data['tenant_id'] is None and values['tenant_id'] is not None:
+                raise fault.ItemNotFoundFault('Invalid tenant id: %s' % \
+                                              values['tenant_id'])
 
         credentials_ref = models.Credentials()
-        credentials_ref.update(values)
+        credentials_ref.update(data)
         credentials_ref.save()
 
         return CredentialsAPI.to_model(credentials_ref)
