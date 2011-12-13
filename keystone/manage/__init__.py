@@ -326,7 +326,6 @@ def process(*args):
         
 
     elif (object_type, action) == ('database', 'version_control'):
-        print args
         options = get_options(args)
         backend_names = options.get('backends', None)
         if backend_names:
