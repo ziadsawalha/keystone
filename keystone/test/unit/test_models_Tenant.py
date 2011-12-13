@@ -41,16 +41,16 @@ class TestModelsTenant(unittest.TestCase):
         self.assertTrue(tenant.enabled)
 
         tenant = Tenant(id=35, name="the tenant", enabled=0, blank=None)
-        self.assertEquals(tenant.enabled, 'false')
+        self.assertEquals(tenant.enabled, False)
 
         json_str = tenant.to_json()
         d1 = json.loads(json_str)
         self.assertIn('tenant', d1)
         self.assertIn('enabled', d1['tenant'])
-        self.assertEquals(d1['tenant']['enabled'], 'false')
+        self.assertEquals(d1['tenant']['enabled'], False)
 
-        tenant = Tenant(id=36, name="the tenant", enabled='false', blank=None)
-        self.assertEquals(tenant.enabled, 'false')
+        tenant = Tenant(id=36, name="the tenant", enabled=False, blank=None)
+        self.assertEquals(tenant.enabled, False)
 
     def test_tenant_json_serialization(self):
         tenant = Tenant(id=3, name="the tenant", enabled=True, blank=None)
@@ -59,7 +59,7 @@ class TestModelsTenant(unittest.TestCase):
 
         d1 = json.loads(json_str)
         d2 = json.loads('{"tenant": {"name": "the tenant", \
-                          "id": "3", "enabled": "true", "dynamic": "test"}}')
+                          "id": "3", "enabled": true, "dynamic": "test"}}')
         self.assertEquals(d1, d2)
 
     def test_tenant_xml_serialization(self):

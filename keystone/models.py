@@ -218,7 +218,7 @@ class Resource(dict):
                 else:
                     element.text = str(value)
             else:
-                if value:
+                if value is not None:
                     if isinstance(value, dict):
                         Resource.write_dict_to_xml(value, xml)
                     elif isinstance(value, bool):
@@ -252,8 +252,6 @@ class Resource(dict):
             for name, type in type_mappings:
                 if type is int:
                     self[name] = int(self[name])
-                elif type is bool:
-                    self[name] = str(self[name]).lower()
                 elif type is str:
                     # Move sub to string
                     if name in self and self[name] is dict:
@@ -438,9 +436,6 @@ class Tenant(Resource):
             hints = {}
         if 'tags' not in hints:
             hints['tags'] = ["description"]
-        if 'types' not in hints:
-            hints['types'] = [("enabled", bool)]
-        print hints
         return super(Tenant, self).to_xml(hints=hints)
 
     def to_json(self, hints=None):
