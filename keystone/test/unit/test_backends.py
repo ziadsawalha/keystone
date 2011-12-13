@@ -37,7 +37,6 @@ class BackendTestCase(unittest.TestCase):
 
         # Init instance of backend
         self.backend = utils.import_module(backend_name)
-        reload(self.backend)
         self.backend.configure_backend(settings)
 
     def test_registration(self):
