@@ -187,6 +187,8 @@ class Server():
 
         # Wait until done
         if wait:
+            from keystone.test import sampledata
+            sampledata.load_fixture()
             self.server.wait()
 
     def stop(self):

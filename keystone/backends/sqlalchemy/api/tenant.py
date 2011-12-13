@@ -283,7 +283,8 @@ class TenantAPI(api.BaseTenantAPI):
         if not session:
             session = get_session()
 
-        tenant_id = self._uid_to_id(tenant_id)
+        if isinstance(api.TENANT, models.Tenant):
+            tenant_id = self._uid_to_id(tenant_id)
 
         endpointTemplates = aliased(models.EndpointTemplates)
         q = session.query(endpointTemplates).\
