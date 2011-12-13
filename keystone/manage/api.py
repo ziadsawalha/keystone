@@ -147,7 +147,7 @@ def add_token(token, user, tenant, expires):
     user = db_api.USER.get_by_name(name=user).id
     tenant = db_api.TENANT.get_by_name(name=tenant).id
 
-    obj = db_models.Token()
+    obj = models.Token()
     obj.id = token
     obj.user_id = user
     obj.tenant_id = tenant

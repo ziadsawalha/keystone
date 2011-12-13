@@ -33,7 +33,7 @@ from keystone.logic.types.credential import Credentials, PasswordCredentials
 from keystone.common import wsgi
 from keystone import utils
 # New imports as we refactor old backend design and models
-from keystone.models import Tenant
+from keystone.models import Tenant, Token
 from keystone.token import Manager as TokenManager
 from keystone.tenant import Manager as TenantManager
 
@@ -280,7 +280,8 @@ def validate_tenant(dtenant):
     if not dtenant:
         raise fault.UnauthorizedFault("Tenant not found")
 
-    if not dtenant.enabled:
+    if dtenant.enabled is None or \
+            str(dtenant.enabled).lower() not in ['1', 'true']:
         raise fault.TenantDisabledFault("Tenant %s has been disabled!"
             % dtenant.id)
 
@@ -423,7 +424,6 @@ class IdentityService(object):
 
     def _authenticate(self, validate, user_id, tenant_id=None):
         if tenant_id:
-            print user_id, tenant_id
             duser = api.USER.get_by_tenant(user_id, tenant_id)
             if duser is None:
                 raise fault.UnauthorizedFault("Unauthorized on this tenant")
@@ -446,7 +446,7 @@ class IdentityService(object):
 
         if not dtoken or dtoken.expires < datetime.now():
             # Create new token
-            dtoken = models.Token()
+            dtoken = Token()
             dtoken.id = str(uuid.uuid4())
             dtoken.user_id = duser.id
             dtoken.tenant_id = tenant_id
