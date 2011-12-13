@@ -221,6 +221,8 @@ class Resource(dict):
                 if value:
                     if isinstance(value, dict):
                         Resource.write_dict_to_xml(value, xml)
+                    elif isinstance(value, bool):
+                        xml.set(name, str(value).lower())
                     else:
                         xml.set(name, str(value))
                 else:
@@ -250,6 +252,8 @@ class Resource(dict):
             for name, type in type_mappings:
                 if type is int:
                     self[name] = int(self[name])
+                elif type is bool:
+                    self[name] = str(self[name]).lower()
                 elif type is str:
                     # Move sub to string
                     if name in self and self[name] is dict:
@@ -263,7 +267,7 @@ class Resource(dict):
         d = self.to_dict()
         if hints:
             if "types" in hints:
-                apply_type_mappings(d, hints["types"])
+                self.apply_type_mappings(d, hints["types"])
         return json.dumps(d)
 
     def to_xml(self, hints=None):
@@ -434,19 +438,15 @@ class Tenant(Resource):
             hints = {}
         if 'tags' not in hints:
             hints['tags'] = ["description"]
+        if 'types' not in hints:
+            hints['types'] = [("enabled", bool)]
+        print hints
         return super(Tenant, self).to_xml(hints=hints)
 
     def to_json(self, hints=None):
         if hints is None:
             hints = {}
-        if 'types' not in hints:
-            hints['type'] = [("enabled", bool)]
-        result = super(Tenant, self).to_json(hints=hints)
-        data = json.loads(result)
-        if 'enabled' in data['tenant']:
-            data['tenant']['enabled'] = str(data['tenant']['enabled']).lower()
-
-        return json.dumps(data)
+        return super(Tenant, self).to_json(hints=hints)
 
 
 class User(Resource):
