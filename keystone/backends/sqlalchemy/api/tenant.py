@@ -254,11 +254,12 @@ class TenantAPI(api.BaseTenantAPI):
             session = get_session()
 
         id = self._uid_to_id(id)
-        TenantAPI.transpose(values)
+        data = values.copy()
+        TenantAPI.transpose(data)
 
         with session.begin():
             tenant_ref = self._get_by_id(id, session)
-            tenant_ref.update(values)
+            tenant_ref.update(data)
             tenant_ref.save(session=session)
 
     def delete(self, id, session=None):

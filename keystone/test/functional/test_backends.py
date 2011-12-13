@@ -74,5 +74,20 @@ T2", enabled='true')
         self.assertEqual(original_tenant, tenant, "Backend modified provided \
 tenant")
 
+    def test_tenant_update(self):
+        tenant = models.Tenant(id="T3", name="Tee Three", description="This \
+is T3", enabled='true')
+
+        new_tenant = api.TENANT.create(tenant)
+
+        new_tenant.enabled = 'false'
+        new_tenant.description = "This is UPDATED T3"
+
+        api.TENANT.update("T3", new_tenant)
+
+        updated_tenant = api.TENANT.get("T3")
+
+        self.assertEqual(new_tenant, updated_tenant)
+
 if __name__ == '__main__':
     unittest.main()
