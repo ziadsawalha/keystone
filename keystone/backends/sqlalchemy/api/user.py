@@ -28,6 +28,10 @@ class UserAPI(api.BaseUserAPI):
     @staticmethod
     def transpose(values):
         """ Transposes field names from domain to sql model"""
+        if 'id' in values:
+            values['uid'] = values['id']
+            del values['id']
+
         if hasattr(values, 'tenant_id'):
             values.tenant_id = api.TENANT._uid_to_id(values.tenant_id)
 
@@ -43,8 +47,9 @@ class UserAPI(api.BaseUserAPI):
         if ref:
             tenant_uid = api.TENANT._id_to_uid(ref.tenant_id)
 
-            return User(id=ref.id, password=ref.password, name=ref.name,
-                tenant_id=tenant_uid, email=ref.email, enabled=ref.enabled)
+            return User(id=ref.uid, password=ref.password, name=ref.name,
+                tenant_id=tenant_uid, email=ref.email,
+                enabled=bool(ref.enabled))
 
     @staticmethod
     def to_model_list(refs):
@@ -73,7 +78,7 @@ class UserAPI(api.BaseUserAPI):
         if not session:
             session = get_session()
 
-        result = session.query(models.User).filter_by(id=id).first()
+        result = session.query(models.User).filter_by(uid=id).first()
 
         return UserAPI.to_model(result)
 
@@ -87,6 +92,16 @@ class UserAPI(api.BaseUserAPI):
             session = get_session()
 
         return session.query(models.User).filter_by(id=id).first()
+
+    def _id_to_uid(self, id, session=None):
+        session = session or get_session()
+        user = session.query(models.User).filter_by(id=id).first()
+        return user.uid if user else None
+
+    def _uid_to_id(self, uid, session=None):
+        session = session or get_session()
+        user = session.query(models.User).filter_by(uid=uid).first()
+        return user.id if user else None
 
     def get_by_name(self, name, session=None):
         if not session:
@@ -160,15 +175,18 @@ class UserAPI(api.BaseUserAPI):
         if not session:
             session = get_session()
 
+        user_id = api.USER._uid_to_id(user_id)
         tenant_id = api.TENANT._uid_to_id(tenant_id)
 
-        result = session.query(models.UserRoleAssociation).\
+        results = session.query(models.UserRoleAssociation).\
             filter_by(user_id=user_id, tenant_id=tenant_id).\
             options(joinedload('roles'))
 
-        result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
+        for result in results:
+            result.user_id = api.USER._id_to_uid(result.user_id)
+            result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
 
-        return result
+        return results
 
     def update(self, id, values, session=None):
         if not session:
@@ -177,7 +195,7 @@ class UserAPI(api.BaseUserAPI):
         UserAPI.transpose(values)
 
         with session.begin():
-            user_ref = self._get_by_id(id, session)
+            user_ref = session.query(models.User).filter_by(uid=id).first()
             utils.set_hashed_password(values)
             user_ref.update(values)
             user_ref.save(session=session)
@@ -187,13 +205,16 @@ class UserAPI(api.BaseUserAPI):
             session = get_session()
 
         with session.begin():
-            user_ref = self._get_by_id(id, session)
+            user_ref = session.query(models.User).filter_by(uid=id).first()
             session.delete(user_ref)
 
     def get_by_tenant(self, id, tenant_id, session=None):
         if not session:
             session = get_session()
 
+        uid = id
+
+        id = api.USER._uid_to_id(uid)
         tenant_id = api.TENANT._uid_to_id(tenant_id)
 
         # Most common use case: user lives in tenant
@@ -206,7 +227,7 @@ class UserAPI(api.BaseUserAPI):
         result = session.query(models.UserRoleAssociation).\
                          filter_by(tenant_id=tenant_id, user_id=id).first()
         if result:
-            return self.get(id, session)
+            return self.get(uid, session)
         else:
             return None
 
@@ -214,10 +235,14 @@ class UserAPI(api.BaseUserAPI):
         if not session:
             session = get_session()
 
+        uid = id
+        tenant_uid = tenant_id
+
+        id = api.USER._uid_to_id(uid)
         tenant_id = api.TENANT._uid_to_id(tenant_id)
 
         with session.begin():
-            users_tenant_ref = self.users_get_by_tenant(id, tenant_id, session)
+            users_tenant_ref = self.users_get_by_tenant(uid, tenant_uid, session)
             if users_tenant_ref is not None:
                 for user_tenant_ref in users_tenant_ref:
                     session.delete(user_tenant_ref)
@@ -226,17 +251,22 @@ class UserAPI(api.BaseUserAPI):
         if not session:
             session = get_session()
 
+        user_id = api.USER._uid_to_id(user_id)
+        tenant_id = api.TENANT._uid_to_id(tenant_id)
+
         results = session.query(models.User).filter_by(id=user_id,
                                                       tenant_id=tenant_id)
         return UserAPI.to_model_list(results)
 
     def user_role_add(self, values):
+        values['user_id'] = api.USER._uid_to_id(values['user_id'])
         values['tenant_id'] = api.TENANT._uid_to_id(values['tenant_id'])
 
         user_role_ref = models.UserRoleAssociation()
         user_role_ref.update(values)
         user_role_ref.save()
 
+        user_role_ref.user_id = api.USER._uid_to_id(user_role_ref.user_id)
         user_role_ref.tenant_id = api.TENANT._uid_to_id(user_role_ref.tenant_id)
 
         return user_role_ref
@@ -245,7 +275,7 @@ class UserAPI(api.BaseUserAPI):
         if not session:
             session = get_session()
 
-        result = session.query(models.User).filter_by(id=id).first()
+        result = session.query(models.User).filter_by(uid=id).first()
 
         return UserAPI.to_model(result)
 

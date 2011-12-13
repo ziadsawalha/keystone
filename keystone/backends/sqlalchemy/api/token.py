@@ -26,6 +26,8 @@ class TokenAPI(api.BaseTokenAPI):
         """ Transposes field names from domain to sql model"""
         if isinstance(api.TENANT, models.Tenant):
             values['tenant_id'] = api.TENANT._uid_to_id(values['tenant_id'])
+        if isinstance(api.USER, models.User):
+            values['user_id'] = api.USER._uid_to_id(values['user_id'])
 
     @staticmethod
     def to_model(ref):
@@ -36,6 +38,12 @@ class TokenAPI(api.BaseTokenAPI):
                     ref['tenant_id'] = api.TENANT._id_to_uid(ref['tenant_id'])
                 elif hasattr(ref, 'tenant_id'):
                     ref.tenant_id = api.TENANT._id_to_uid(ref.tenant_id)
+
+            if isinstance(api.USER, models.User):
+                if 'user_id' in ref:
+                    ref['user_id'] = api.USER._id_to_uid(ref['user_id'])
+                elif hasattr(ref, 'user_id'):
+                    ref.user_id = api.USER._id_to_uid(ref.user_id)
 
             return Token(id=ref.id, user_id=ref.user_id, expires=ref.expires,
                          tenant_id=ref.tenant_id)
@@ -72,6 +80,8 @@ class TokenAPI(api.BaseTokenAPI):
         if not session:
             session = get_session()
 
+        user_id = api.USER._uid_to_id(user_id)
+
         result = session.query(models.Token).filter_by(
             user_id=user_id, tenant_id=None).order_by("expires desc").first()
 
@@ -80,6 +90,8 @@ class TokenAPI(api.BaseTokenAPI):
     def get_for_user_by_tenant(self, user_id, tenant_id, session=None):
         if not session:
             session = get_session()
+
+        user_id = api.USER._uid_to_id(user_id)
 
         result = session.query(models.Token).\
             filter_by(user_id=user_id, tenant_id=tenant_id).\
