@@ -221,8 +221,12 @@ class RoleAPI(api.BaseRoleAPI):
     def ref_get_by_role(self, role_id, session=None):
         if not session:
             session = get_session()
+
         result = session.query(models.UserRoleAssociation).\
             filter_by(role_id=role_id).all()
+
+        result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
+
         return result
 
     def ref_get_by_user(self, user_id, role_id, tenant_id, session=None):
@@ -239,6 +243,9 @@ class RoleAPI(api.BaseRoleAPI):
             result = session.query(models.UserRoleAssociation).\
                 filter_by(user_id=user_id).filter_by(tenant_id=tenant_id).\
                 filter_by(role_id=role_id).first()
+
+        result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
+
         return result
 
 
