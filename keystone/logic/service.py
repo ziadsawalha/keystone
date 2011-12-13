@@ -451,7 +451,10 @@ class IdentityService(object):
             dtoken.user_id = duser.id
             dtoken.tenant_id = tenant_id
             dtoken.expires = datetime.now() + timedelta(days=1)
+            print "B", dtoken
             dtoken = api.TOKEN.create(dtoken)
+            print "A", dtoken
+        print get_auth_data(dtoken).to_json()
         return get_auth_data(dtoken)
 
     def validate_token(self, admin_token, token_id, belongs_to=None):
