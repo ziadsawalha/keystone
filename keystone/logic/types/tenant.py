@@ -34,6 +34,7 @@ class Tenant(object):
             self.enabled = bool(enabled)
         else:
             self.enabled = None
+        print self.enabled
 
     @staticmethod
     def from_xml(xml_str):
@@ -94,8 +95,8 @@ class Tenant(object):
 
     def to_dom(self):
         dom = etree.Element("tenant",
-                        xmlns="http://docs.openstack.org/identity/api/v2.0",
-                        enabled=str(self.enabled).lower())
+            xmlns="http://docs.openstack.org/identity/api/v2.0",
+            enabled=str(self.enabled).lower())
         if self.id:
             dom.set("id", unicode(self.id))
         if self.name:
