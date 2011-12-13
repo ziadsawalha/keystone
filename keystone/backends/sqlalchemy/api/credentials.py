@@ -101,5 +101,6 @@ class CredentialsAPI(api.BaseCredentialsAPI):
             group_ref = self.get(id, session)
             session.delete(group_ref)
 
+
 def get():
     return CredentialsAPI()

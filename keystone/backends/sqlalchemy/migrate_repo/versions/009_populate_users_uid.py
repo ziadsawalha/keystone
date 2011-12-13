@@ -15,7 +15,8 @@ meta = sqlalchemy.MetaData()
 user = {}
 user['id'] = sqlalchemy.Column('id', sqlalchemy.Integer, primary_key=True,
     autoincrement=True)
-user['uid'] = sqlalchemy.Column('uid', sqlalchemy.String(255), unique=False, nullable=True)
+user['uid'] = sqlalchemy.Column('uid', sqlalchemy.String(255), unique=False,
+    nullable=True)
 user['name'] = sqlalchemy.Column('name', sqlalchemy.String(255), unique=True)
 user['password'] = sqlalchemy.Column('password', sqlalchemy.String(255))
 user['email'] = sqlalchemy.Column('email', sqlalchemy.String(255))

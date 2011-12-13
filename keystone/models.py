@@ -502,7 +502,8 @@ class Role(Resource):
 
 class Token(Resource):
     """ Token model """
-    def __init__(self, id=None, user_id=None, expires=None, tenant_id=None, *args, **kw):
+    def __init__(self, id=None, user_id=None, expires=None, tenant_id=None,
+            *args, **kw):
         super(Token, self).__init__(id=id, user_id=user_id, expires=expires,
                                     tenant_id=tenant_id, *args, **kw)
 

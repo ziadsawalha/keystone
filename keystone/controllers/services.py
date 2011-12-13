@@ -10,13 +10,14 @@ class ServicesController(wsgi.Controller):
 
     def __init__(self, options):
         self.options = options
-        self.identity_service =  service.IdentityService(options)
+        self.identity_service = service.IdentityService(options)
 
     @utils.wrap_error
     def create_service(self, req):
         service = utils.get_normalized_request_content(Service, req)
         return utils.send_result(201, req,
-            self.identity_service.create_service(utils.get_auth_token(req), service))
+            self.identity_service.create_service(utils.get_auth_token(req),
+                service))
 
     @utils.wrap_error
     def get_services(self, req):

@@ -9,7 +9,7 @@ class CredentialsController(wsgi.Controller):
     """Controller for Credentials related operations"""
     def __init__(self, options):
         self.options = options
-        self.identity_service =  service.IdentityService(options)
+        self.identity_service = service.IdentityService(options)
 
     @utils.wrap_error
     def get_credentials(self, req, user_id):
@@ -26,8 +26,8 @@ class CredentialsController(wsgi.Controller):
 
     @utils.wrap_error
     def delete_password_credential(self, req, user_id):
-        self.identity_service.delete_password_credentials(utils.get_auth_token(req),
-            user_id)
+        self.identity_service.delete_password_credentials(
+            utils.get_auth_token(req), user_id)
         return utils.send_result(204, None)
 
     @utils.wrap_error

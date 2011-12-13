@@ -37,7 +37,7 @@ class TokenController(wsgi.Controller):
 
     def __init__(self, options):
         self.options = options
-        self.identity_service =  service.IdentityService(options)
+        self.identity_service = service.IdentityService(options)
 
     @utils.wrap_error
     def authenticate(self, req):
@@ -49,8 +49,8 @@ class TokenController(wsgi.Controller):
             try:
                 unscoped = utils.get_normalized_request_content(
                     auth.AuthWithUnscopedToken, req)
-                result = self.identity_service.authenticate_with_unscoped_token(
-                    unscoped)
+                result = self.identity_service.\
+                    authenticate_with_unscoped_token(unscoped)
             except fault.BadRequestFault as e2:
                 if e1.msg == e2.msg:
                     raise e1
@@ -85,7 +85,8 @@ class TokenController(wsgi.Controller):
     @utils.wrap_error
     def delete_token(self, req, token_id):
         return utils.send_result(204, req,
-            self.identity_service.revoke_token(utils.get_auth_token(req), token_id))
+            self.identity_service.revoke_token(utils.get_auth_token(req),
+                token_id))
 
     @utils.wrap_error
     def endpoints(self, req, token_id):
