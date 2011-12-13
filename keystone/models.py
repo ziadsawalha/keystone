@@ -438,9 +438,6 @@ class Tenant(Resource):
             hints = {}
         if 'tags' not in hints:
             hints['tags'] = ["description"]
-        if 'types' not in hints:
-            hints['types'] = [("enabled", bool)]
-        print hints
         return super(Tenant, self).to_xml(hints=hints)
 
     def to_json(self, hints=None):
