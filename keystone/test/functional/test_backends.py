@@ -50,7 +50,7 @@ class BackendTestCase(unittest.TestCase):
 
     def test_basic_tenant_create(self):
         tenant = models.Tenant(name="Tee One", description="This is T1",
-                               enabled='true')
+                               enabled=True)
 
         original_tenant = tenant.copy()
         new_tenant = api.TENANT.create(tenant)
@@ -63,7 +63,7 @@ tenant")
 
     def test_tenant_create_with_id(self):
         tenant = models.Tenant(id="T2", name="Tee Two", description="This is \
-T2", enabled='true')
+T2", enabled=True)
 
         original_tenant = tenant.copy()
         new_tenant = api.TENANT.create(tenant)
@@ -75,12 +75,12 @@ T2", enabled='true')
 tenant")
 
     def test_tenant_update(self):
-        tenant = models.Tenant(id="T3", name="Tee Three", description="This \
-is T3", enabled='true')
+        tenant = models.Tenant(id="T3", name="Tee Three",
+            description="This is T3", enabled=True)
 
         new_tenant = api.TENANT.create(tenant)
 
-        new_tenant.enabled = 'false'
+        new_tenant.enabled = False
         new_tenant.description = "This is UPDATED T3"
 
         api.TENANT.update("T3", new_tenant)
