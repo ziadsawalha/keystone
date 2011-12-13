@@ -26,7 +26,8 @@ class UserAPI(api.BaseUserAPI):
     @staticmethod
     def transpose(values):
         """ Transposes field names from domain to sql model"""
-        values['tenant_id'] = api.TENANT._uid_to_id(values['tenant_id'])
+        if 'tenant_id' in values:
+            values['tenant_id'] = api.TENANT._uid_to_id(values['tenant_id'])
 
     @staticmethod
     def to_model(ref):
