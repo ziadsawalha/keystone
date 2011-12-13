@@ -267,6 +267,7 @@ class TenantAPI(api.BaseTenantAPI):
             tenant_ref = self._get_by_id(id, session)
             tenant_ref.update(data)
             tenant_ref.save(session=session)
+            return self.get(id, session)
 
     def delete(self, id, session=None):
         if not session:

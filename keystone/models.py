@@ -218,7 +218,7 @@ class Resource(dict):
                 else:
                     element.text = str(value)
             else:
-                if value:
+                if value is not None:
                     if isinstance(value, dict):
                         Resource.write_dict_to_xml(value, xml)
                     elif isinstance(value, bool):
@@ -252,8 +252,6 @@ class Resource(dict):
             for name, type in type_mappings:
                 if type is int:
                     self[name] = int(self[name])
-                elif type is bool:
-                    self[name] = str(self[name]).lower()
                 elif type is str:
                     # Move sub to string
                     if name in self and self[name] is dict:
