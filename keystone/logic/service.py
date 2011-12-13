@@ -423,6 +423,7 @@ class IdentityService(object):
 
     def _authenticate(self, validate, user_id, tenant_id=None):
         if tenant_id:
+            print user_id, tenant_id
             duser = api.USER.get_by_tenant(user_id, tenant_id)
             if duser is None:
                 raise fault.UnauthorizedFault("Unauthorized on this tenant")

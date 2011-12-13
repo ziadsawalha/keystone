@@ -17,7 +17,7 @@
 
 from keystone.backends.sqlalchemy import get_session, models
 from keystone.backends import api
-from keystone import models
+from keystone.models import Credentials
 
 
 class CredentialsAPI(api.BaseCredentialsAPI):
@@ -29,10 +29,11 @@ class CredentialsAPI(api.BaseCredentialsAPI):
     @staticmethod
     def to_model(ref):
         """ Returns Keystone model object based on SQLAlchemy model"""
-        tenant_uid = api.TENANT._id_to_uid(ref.tenant_id)
+        if ref:
+            tenant_uid = api.TENANT._id_to_uid(ref.tenant_id)
 
-        return models.Credentials(id=ref.id, user_id=ref.user_id,
-            tenant_id=tenant_uid, type=ref.type, key=ref.key, secret=ref.secret)
+            return Credentials(id=ref.id, user_id=ref.user_id,
+                tenant_id=tenant_uid, type=ref.type, key=ref.key, secret=ref.secret)
 
     @staticmethod
     def to_model_list(refs):
