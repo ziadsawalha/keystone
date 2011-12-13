@@ -203,7 +203,8 @@ class EndpointTemplateAPI(api.BaseEndpointTemplateAPI):
         if not session:
             session = get_session()
 
-        tenant_id = api.TENANT._uid_to_id(tenant_id)
+        if isinstance(api.TENANT, models.Tenant):
+            tenant_id = api.TENANT._uid_to_id(tenant_id)
 
         if marker:
             results = session.query(models.Endpoints).\
@@ -216,8 +217,9 @@ class EndpointTemplateAPI(api.BaseEndpointTemplateAPI):
                 filter(models.Endpoints.tenant_id == tenant_id).\
                 order_by(models.Endpoints.id).limit(limit).all()
 
-        for result in results:
-            result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
+        if isinstance(api.TENANT, models.Tenant):
+            for result in results:
+                result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
 
         return results
 
@@ -227,7 +229,8 @@ class EndpointTemplateAPI(api.BaseEndpointTemplateAPI):
         if not session:
             session = get_session()
 
-        tenant_id = api.TENANT._uid_to_id(tenant_id)
+        if isinstance(api.TENANT, models.Tenant):
+            tenant_id = api.TENANT._uid_to_id(tenant_id)
 
         tba = aliased(models.Endpoints)
         first = session.query(tba).\
@@ -275,13 +278,15 @@ class EndpointTemplateAPI(api.BaseEndpointTemplateAPI):
         return (prev_page, next_page)
 
     def endpoint_add(self, values):
-        values.tenant_id = api.TENANT._uid_to_id(values.tenant_id)
+        if isinstance(api.TENANT, models.Tenant):
+            values.tenant_id = api.TENANT._uid_to_id(values.tenant_id)
 
         endpoints = models.Endpoints()
         endpoints.update(values)
         endpoints.save()
 
-        endpoints.tenant_id = api.TENANT._id_to_uid(endpoints.tenant_id)
+        if isinstance(api.TENANT, models.Tenant):
+            endpoints.tenant_id = api.TENANT._id_to_uid(endpoints.tenant_id)
 
         return endpoints
 
@@ -292,8 +297,9 @@ class EndpointTemplateAPI(api.BaseEndpointTemplateAPI):
         result = session.query(models.Endpoints).\
             filter_by(id=id).first()
 
-        if result:
-            result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
+        if isinstance(api.TENANT, models.Tenant):
+            if result:
+                result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
 
         return result
 
@@ -301,13 +307,15 @@ class EndpointTemplateAPI(api.BaseEndpointTemplateAPI):
         if not session:
             session = get_session()
 
-        tenant_id = api.TENANT._uid_to_id(tenant_id)
+        if isinstance(api.TENANT, models.Tenant):
+            tenant_id = api.TENANT._uid_to_id(tenant_id)
 
         result = session.query(models.Endpoints).\
                         filter_by(tenant_id=tenant_id).first()
 
-        if result:
-            result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
+        if isinstance(api.TENANT, models.Tenant):
+            if result:
+                result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
 
         return result
 

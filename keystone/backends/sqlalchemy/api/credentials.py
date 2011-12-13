@@ -25,16 +25,19 @@ class CredentialsAPI(api.BaseCredentialsAPI):
     @staticmethod
     def transpose(values):
         """ Transposes field names from domain to sql model"""
-        values['tenant_id'] = api.TENANT._uid_to_id(values['tenant_id'])
+        if isinstance(api.TENANT, models.Tenant):
+            values['tenant_id'] = api.TENANT._uid_to_id(values['tenant_id'])
 
     @staticmethod
     def to_model(ref):
         """ Returns Keystone model object based on SQLAlchemy model"""
         if ref:
-            tenant_uid = api.TENANT._id_to_uid(ref.tenant_id)
+            if isinstance(api.TENANT, models.Tenant):
+                ref.tenant_id = api.TENANT._id_to_uid(ref.tenant_id)
 
             return Credentials(id=ref.id, user_id=ref.user_id,
-                tenant_id=tenant_uid, type=ref.type, key=ref.key, secret=ref.secret)
+                tenant_id=ref.tenant_id, type=ref.type, key=ref.key,
+                secret=ref.secret)
 
     @staticmethod
     def to_model_list(refs):
