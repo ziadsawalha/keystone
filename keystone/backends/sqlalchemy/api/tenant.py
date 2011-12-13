@@ -121,6 +121,9 @@ class TenantAPI(api.BaseTenantAPI):
     def tenants_for_user_get_page(self, user, marker, limit, session=None):
         if not session:
             session = get_session()
+
+        user.tenant_id = api.TENANT._uid_to_id(user.tenant_id)
+
         ura = aliased(models.UserRoleAssociation)
         tenant = aliased(models.Tenant)
         q1 = session.query(tenant).join((ura, ura.tenant_id == tenant.id)).\
@@ -140,6 +143,9 @@ class TenantAPI(api.BaseTenantAPI):
             session=None):
         if not session:
             session = get_session()
+
+        user.tenant_id = api.TENANT._uid_to_id(user.tenant_id)
+
         ura = aliased(models.UserRoleAssociation)
         tenant = aliased(models.Tenant)
         q1 = session.query(tenant).join((ura, ura.tenant_id == tenant.id)).\
