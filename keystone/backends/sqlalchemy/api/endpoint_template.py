@@ -206,15 +206,21 @@ class EndpointTemplateAPI(api.BaseEndpointTemplateAPI):
         tenant_id = api.TENANT._uid_to_id(tenant_id)
 
         if marker:
-            return session.query(models.Endpoints).\
+            results = session.query(models.Endpoints).\
                 filter(models.Endpoints.tenant_id == tenant_id).\
                 filter("id >= :marker").params(
                 marker='%s' % marker).order_by(
                 models.Endpoints.id).limit(limit).all()
         else:
-            return session.query(models.Endpoints).\
+            results = session.query(models.Endpoints).\
                 filter(models.Endpoints.tenant_id == tenant_id).\
                 order_by(models.Endpoints.id).limit(limit).all()
+
+        for result in results:
+            result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
+
+        return results
+
 
     def endpoint_get_by_tenant_get_page_markers(self, tenant_id, marker, limit,
             session=None):

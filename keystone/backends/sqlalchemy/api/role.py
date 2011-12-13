@@ -222,12 +222,13 @@ class RoleAPI(api.BaseRoleAPI):
         if not session:
             session = get_session()
 
-        result = session.query(models.UserRoleAssociation).\
+        results = session.query(models.UserRoleAssociation).\
             filter_by(role_id=role_id).all()
 
-        result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
+        for result in results:
+            result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
 
-        return result
+        return results
 
     def ref_get_by_user(self, user_id, role_id, tenant_id, session=None):
         if not session:
@@ -244,7 +245,8 @@ class RoleAPI(api.BaseRoleAPI):
                 filter_by(user_id=user_id).filter_by(tenant_id=tenant_id).\
                 filter_by(role_id=role_id).first()
 
-        result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
+        if result:
+            result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
 
         return result
 
