@@ -135,6 +135,7 @@ class User(Base, KeystoneBase):
     __tablename__ = 'users'
     __api__ = 'user'
     id = Column(Integer, primary_key=True, autoincrement=True)
+    uid = Column(String(255), unique=True, nullable=False)
     name = Column(String(255), unique=True)
     password = Column(String(255))
     email = Column(String(255))
