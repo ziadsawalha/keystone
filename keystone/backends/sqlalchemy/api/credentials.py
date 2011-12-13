@@ -27,6 +27,8 @@ class CredentialsAPI(api.BaseCredentialsAPI):
         """ Transposes field names from domain to sql model"""
         if isinstance(api.TENANT, models.Tenant):
             values['tenant_id'] = api.TENANT._uid_to_id(values['tenant_id'])
+        if isinstance(api.USER, models.User):
+            values['user_id'] = api.USER._uid_to_id(values['user_id'])
 
     @staticmethod
     def to_model(ref):
@@ -34,6 +36,8 @@ class CredentialsAPI(api.BaseCredentialsAPI):
         if ref:
             if isinstance(api.TENANT, models.Tenant):
                 ref.tenant_id = api.TENANT._id_to_uid(ref.tenant_id)
+            if isinstance(api.USER, models.User):
+                ref.user_id = api.USER._id_to_uid(ref.user_id)
 
             return Credentials(id=ref.id, user_id=ref.user_id,
                 tenant_id=ref.tenant_id, type=ref.type, key=ref.key,
