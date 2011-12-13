@@ -323,7 +323,6 @@ def process(*args):
             else:
                 raise optparse.OptParseError(
                     'SQL alchemy backend not specified in config')
-        
 
     elif (object_type, action) == ('database', 'version_control'):
         options = get_options(args)

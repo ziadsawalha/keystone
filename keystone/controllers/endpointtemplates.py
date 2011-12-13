@@ -10,7 +10,7 @@ class EndpointTemplatesController(wsgi.Controller):
 
     def __init__(self, options):
         self.options = options
-        self.identity_service =  service.IdentityService(options)
+        self.identity_service = service.IdentityService(options)
 
     @utils.wrap_error
     def get_endpoint_templates(self, req):
@@ -30,8 +30,8 @@ class EndpointTemplatesController(wsgi.Controller):
         endpoint_template = utils.get_normalized_request_content(
             EndpointTemplate, req)
         return utils.send_result(201, req,
-            self.identity_service.add_endpoint_template(utils.get_auth_token(req),
-                endpoint_template))
+            self.identity_service.add_endpoint_template(
+                utils.get_auth_token(req), endpoint_template))
 
     @utils.wrap_error
     def modify_endpoint_template(self, req, endpoint_template_id):

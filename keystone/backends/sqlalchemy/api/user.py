@@ -257,7 +257,8 @@ class UserAPI(api.BaseUserAPI):
             tenant_id = api.TENANT._uid_to_id(tenant_id)
 
         with session.begin():
-            users_tenant_ref = self.users_get_by_tenant(uid, tenant_uid, session)
+            users_tenant_ref = self.users_get_by_tenant(uid, tenant_uid,
+                session)
             if users_tenant_ref is not None:
                 for user_tenant_ref in users_tenant_ref:
                     session.delete(user_tenant_ref)
@@ -288,7 +289,8 @@ class UserAPI(api.BaseUserAPI):
         if hasattr(api.USER, '_uid_to_id'):
             user_role_ref.user_id = api.USER._uid_to_id(user_role_ref.user_id)
         if hasattr(api.TENANT, '_uid_to_id'):
-            user_role_ref.tenant_id = api.TENANT._uid_to_id(user_role_ref.tenant_id)
+            user_role_ref.tenant_id = api.TENANT._uid_to_id(
+                user_role_ref.tenant_id)
 
         return user_role_ref
 

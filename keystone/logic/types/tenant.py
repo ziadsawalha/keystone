@@ -19,6 +19,7 @@ from lxml import etree
 from keystone.logic.types import fault
 from keystone import models
 
+
 class Tenant(object):
     """Describes a tenant in the auth system"""
     id = None
