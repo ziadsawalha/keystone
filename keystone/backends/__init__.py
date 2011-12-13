@@ -34,9 +34,10 @@ SHOULD_HASH_PASSWORD = None
 def configure_backends(options):
     '''Load backends given in the 'backends' option.'''
     backend_names = options.get('backends', DEFAULT_BACKENDS)
-    for backend in backend_names.split(','):
-        backend_module = utils.import_module(backend)
-        backend_module.configure_backend(options[backend])
+    if backend_names:
+        for backend in backend_names.split(','):
+            backend_module = utils.import_module(backend)
+            backend_module.configure_backend(options[backend])
 
     #Initialize common configs general to all backends.
     global ADMIN_ROLE_NAME
