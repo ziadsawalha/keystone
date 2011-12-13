@@ -22,24 +22,31 @@ from keystone.models import Token
 
 class TokenAPI(api.BaseTokenAPI):
     @staticmethod
-    def transpose(values):
+    def transpose(ref):
         """ Transposes field names from domain to sql model"""
-        if isinstance(api.TENANT, models.Tenant):
-            values['tenant_id'] = api.TENANT._uid_to_id(values['tenant_id'])
-        if isinstance(api.USER, models.User):
-            values['user_id'] = api.USER._uid_to_id(values['user_id'])
+        if hasattr(api.TENANT, '_uid_to_id'):
+            if 'tenant_id' in ref:
+                ref['tenant_id'] = api.TENANT._uid_to_id(ref['tenant_id'])
+            elif hasattr(ref, 'tenant_id'):
+                ref.tenant_id = api.TENANT._uid_to_id(ref.tenant_id)
+
+        if hasattr(api.USER, '_uid_to_id'):
+            if 'user_id' in ref:
+                ref['user_id'] = api.USER._uid_to_id(ref['user_id'])
+            elif hasattr(ref, 'tenant_id'):
+                ref.user_id = api.USER._uid_to_id(ref.user_id)
 
     @staticmethod
     def to_model(ref):
         """ Returns Keystone model object based on SQLAlchemy model"""
         if ref:
-            if isinstance(api.TENANT, models.Tenant):
+            if hasattr(api.TENANT, '_uid_to_id'):
                 if 'tenant_id' in ref:
                     ref['tenant_id'] = api.TENANT._id_to_uid(ref['tenant_id'])
                 elif hasattr(ref, 'tenant_id'):
                     ref.tenant_id = api.TENANT._id_to_uid(ref.tenant_id)
 
-            if isinstance(api.USER, models.User):
+            if hasattr(api.USER, '_uid_to_id'):
                 if 'user_id' in ref:
                     ref['user_id'] = api.USER._id_to_uid(ref['user_id'])
                 elif hasattr(ref, 'user_id'):
@@ -80,7 +87,7 @@ class TokenAPI(api.BaseTokenAPI):
         if not session:
             session = get_session()
 
-        if isinstance(api.USER, models.User):
+        if hasattr(api.USER, '_uid_to_id'):
             user_id = api.USER._uid_to_id(user_id)
 
         result = session.query(models.Token).filter_by(
@@ -92,7 +99,7 @@ class TokenAPI(api.BaseTokenAPI):
         if not session:
             session = get_session()
 
-        if isinstance(api.USER, models.User):
+        if hasattr(api.USER, '_uid_to_id'):
             user_id = api.USER._uid_to_id(user_id)
 
         result = session.query(models.Token).\
