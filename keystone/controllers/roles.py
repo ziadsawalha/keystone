@@ -10,7 +10,7 @@ class RolesController(wsgi.Controller):
 
     def __init__(self, options):
         self.options = options
-        self.identity_service =  service.IdentityService(options)
+        self.identity_service = service.IdentityService(options)
 
     # Not exposed yet.
     @utils.wrap_error
@@ -21,7 +21,8 @@ class RolesController(wsgi.Controller):
 
     @utils.wrap_error
     def delete_role(self, req, role_id):
-        rval = self.identity_service.delete_role(utils.get_auth_token(req), role_id)
+        rval = self.identity_service.delete_role(
+            utils.get_auth_token(req), role_id)
         return utils.send_result(204, req, rval)
 
     @utils.wrap_error
@@ -39,7 +40,8 @@ class RolesController(wsgi.Controller):
 
     @utils.wrap_error
     def get_role(self, req, role_id):
-        role = self.identity_service.get_role(utils.get_auth_token(req), role_id)
+        role = self.identity_service.get_role(utils.get_auth_token(req),
+            role_id)
         return utils.send_result(200, req, role)
 
     @utils.wrap_error

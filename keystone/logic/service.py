@@ -341,7 +341,7 @@ class IdentityService(object):
 
     def __init__(self, options):
         """ Initialize
-        
+
         Loads all necessary backends to handle incoming requests.
         """
         backends.configure_backends(options)
@@ -563,7 +563,8 @@ class IdentityService(object):
                   'name': tenant.name}
         api.TENANT.update(tenant_id, values)
         dtenant = api.TENANT.get(tenant_id)
-        return Tenant(id=dtenant.id, name=dtenant.name, description=dtenant.desc, enabled=dtenant.enabled)
+        return Tenant(id=dtenant.id, name=dtenant.name,
+            description=dtenant.desc, enabled=dtenant.enabled)
 
     def delete_tenant(self, admin_token, tenant_id):
         validate_admin_token(admin_token)

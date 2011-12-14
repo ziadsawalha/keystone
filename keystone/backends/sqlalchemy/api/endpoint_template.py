@@ -223,7 +223,6 @@ class EndpointTemplateAPI(api.BaseEndpointTemplateAPI):
 
         return results
 
-
     def endpoint_get_by_tenant_get_page_markers(self, tenant_id, marker, limit,
             session=None):
         if not session:

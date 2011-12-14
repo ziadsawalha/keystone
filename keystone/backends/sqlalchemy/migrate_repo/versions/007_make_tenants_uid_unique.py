@@ -16,8 +16,9 @@ meta = sqlalchemy.MetaData()
 
 tenant = {}
 tenant['id'] = sqlalchemy.Column('id', sqlalchemy.Integer, primary_key=True,
-        autoincrement=True)
-tenant['uid'] = sqlalchemy.Column('uid', sqlalchemy.String(255), unique=False, nullable=True)
+    autoincrement=True)
+tenant['uid'] = sqlalchemy.Column('uid', sqlalchemy.String(255), unique=False,
+    nullable=True)
 tenant['name'] = sqlalchemy.Column('name', sqlalchemy.String(255), unique=True)
 tenant['desc'] = sqlalchemy.Column('desc', sqlalchemy.String(255))
 tenant['enabled'] = sqlalchemy.Column('enabled', sqlalchemy.Integer)
