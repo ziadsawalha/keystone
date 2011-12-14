@@ -27,10 +27,12 @@ import logging
 import optparse  # deprecated in 2.7, in favor of argparse
 
 from keystone import version
-from keystone.common import config
-from keystone.manage import api
 import keystone.backends as db
 from keystone.backends.sqlalchemy import migration
+from keystone.common import config
+from keystone.logic.types import fault
+from keystone.manage import api
+
 
 # CLI feature set
 OBJECTS = ['user', 'tenant', 'role', 'service',
@@ -364,6 +366,7 @@ def do_db_upgrade(options, args):
     except IndexError:
         db_version = None
 
+    print "Upgrading database to version %s" % db_version
     migration.upgrade(options, version=db_version)
 
 
@@ -380,6 +383,7 @@ def do_db_downgrade(options, args):
 def do_db_version_control(options):
     """Place a database under migration control"""
     migration.version_control(options)
+    print "Database now under version control"
 
 
 def do_db_sync(options, args):
@@ -394,7 +398,7 @@ def do_db_sync(options, args):
 def main(args=None):
     try:
         process(*parse_args(args))
-    except optparse.OptParseError as exc:
+    except (optparse.OptParseError, fault.DatabaseMigrationError) as exc:
         print >> sys.stderr, exc
         sys.exit(2)
     except Exception as exc:
