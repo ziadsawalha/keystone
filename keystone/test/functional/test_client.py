@@ -93,3 +93,6 @@ class TestServiceClient(unittest.TestCase):
         """
         self.assertRaises(keystone.common.exception.ClientError,
             self.client.get_token, "bad_user", "bad_pass")
+
+if __name__ == '__main__':
+    unittest.main()
