@@ -60,19 +60,12 @@ class TenantAPI(api.BaseTenantAPI):
         return [TenantAPI.to_model(ref) for ref in refs]
 
     def create(self, values):
-<<<<<<< HEAD
-        TenantAPI.transpose(values)
-        tenant_ref = models.Tenant()
-        tenant_ref.update(values)
-        tenant_ref.uid = uuid.uuid4().hex
-=======
         data = values.copy()
         TenantAPI.transpose(data)
         tenant_ref = models.Tenant()
         tenant_ref.update(data)
         if tenant_ref.uid is None:
             tenant_ref.uid = uuid.uuid4().hex
->>>>>>> 58c1ff771272419c460385092c304bf38c7e1cf7
         tenant_ref.save()
         return TenantAPI.to_model(tenant_ref)
 
