@@ -20,6 +20,9 @@ from keystone.backends import api
 
 
 class EndpointTemplateAPI(api.BaseEndpointTemplateAPI):
+    def __init__(self, *args, **kw):
+        super(EndpointTemplateAPI, self).__init__(*args, **kw)
+
     @staticmethod
     def transpose(values):
         """ Transposes field names from domain to sql model"""
@@ -93,7 +96,7 @@ class EndpointTemplateAPI(api.BaseEndpointTemplateAPI):
                                 models.EndpointTemplates.id.desc()).\
                                 limit(limit).all()
 
-    def get_by_service_get_page_markers(self, service_id, marker,\
+    def get_by_service_get_page_markers(self, service_id, marker, \
         limit, session=None):
         if not session:
             session = get_session()
@@ -204,7 +207,7 @@ class EndpointTemplateAPI(api.BaseEndpointTemplateAPI):
             session = get_session()
 
         if isinstance(api.TENANT, models.Tenant):
-            tenant_id = api.TENANT._uid_to_id(tenant_id)
+            tenant_id = api.TENANT.uid_to_id(tenant_id)
 
         if marker:
             results = session.query(models.Endpoints).\
@@ -219,7 +222,7 @@ class EndpointTemplateAPI(api.BaseEndpointTemplateAPI):
 
         if isinstance(api.TENANT, models.Tenant):
             for result in results:
-                result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
+                result.tenant_id = api.TENANT.id_to_uid(result.tenant_id)
 
         return results
 
@@ -229,7 +232,7 @@ class EndpointTemplateAPI(api.BaseEndpointTemplateAPI):
             session = get_session()
 
         if isinstance(api.TENANT, models.Tenant):
-            tenant_id = api.TENANT._uid_to_id(tenant_id)
+            tenant_id = api.TENANT.uid_to_id(tenant_id)
 
         tba = aliased(models.Endpoints)
         first = session.query(tba).\
@@ -278,14 +281,14 @@ class EndpointTemplateAPI(api.BaseEndpointTemplateAPI):
 
     def endpoint_add(self, values):
         if isinstance(api.TENANT, models.Tenant):
-            values.tenant_id = api.TENANT._uid_to_id(values.tenant_id)
+            values.tenant_id = api.TENANT.uid_to_id(values.tenant_id)
 
         endpoints = models.Endpoints()
         endpoints.update(values)
         endpoints.save()
 
         if isinstance(api.TENANT, models.Tenant):
-            endpoints.tenant_id = api.TENANT._id_to_uid(endpoints.tenant_id)
+            endpoints.tenant_id = api.TENANT.id_to_uid(endpoints.tenant_id)
 
         return endpoints
 
@@ -298,7 +301,7 @@ class EndpointTemplateAPI(api.BaseEndpointTemplateAPI):
 
         if isinstance(api.TENANT, models.Tenant):
             if result:
-                result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
+                result.tenant_id = api.TENANT.id_to_uid(result.tenant_id)
 
         return result
 
@@ -307,14 +310,14 @@ class EndpointTemplateAPI(api.BaseEndpointTemplateAPI):
             session = get_session()
 
         if isinstance(api.TENANT, models.Tenant):
-            tenant_id = api.TENANT._uid_to_id(tenant_id)
+            tenant_id = api.TENANT.uid_to_id(tenant_id)
 
         result = session.query(models.Endpoints).\
                         filter_by(tenant_id=tenant_id).first()
 
         if isinstance(api.TENANT, models.Tenant):
             if result:
-                result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
+                result.tenant_id = api.TENANT.id_to_uid(result.tenant_id)
 
         return result
 

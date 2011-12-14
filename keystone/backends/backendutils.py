@@ -5,7 +5,7 @@ from passlib.hash import sha512_crypt as sc
 
 def __get_hashed_password(password):
     if password != None and len(password) > 0:
-            return __make_password(password)
+        return __make_password(password)
     else:
         return None
 
