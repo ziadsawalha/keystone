@@ -14,11 +14,14 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from keystone.backends.memcache import MEMCACHE_SERVER, models
+from keystone.backends.memcache import MEMCACHE_SERVER
 from keystone.backends.api import BaseTokenAPI
 
 
 class TokenAPI(BaseTokenAPI):
+    def __init__(self, *args, **kw):
+        super(TokenAPI, self).__init__(*args, **kw)
+
     def create(self, token):
         if not hasattr(token, 'tenant_id'):
             token.tenant_id = None

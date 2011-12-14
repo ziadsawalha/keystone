@@ -23,6 +23,9 @@ from keystone.models import Tenant
 
 
 class TenantAPI(api.BaseTenantAPI):
+    def __init__(self, *args, **kw):
+        super(TenantAPI, self).__init__(*args, **kw)
+
     # pylint: disable=W0221
     @staticmethod
     def transpose(values):
@@ -96,12 +99,12 @@ class TenantAPI(api.BaseTenantAPI):
 
         return session.query(models.Tenant).filter_by(id=id).first()
 
-    def _id_to_uid(self, id, session=None):
+    def id_to_uid(self, id, session=None):
         session = session or get_session()
         tenant = session.query(models.Tenant).filter_by(id=id).first()
         return tenant.uid if tenant else None
 
-    def _uid_to_id(self, uid, session=None):
+    def uid_to_id(self, uid, session=None):
         session = session or get_session()
         tenant = session.query(models.Tenant).filter_by(uid=uid).first()
         return tenant.id if tenant else None
@@ -125,10 +128,10 @@ class TenantAPI(api.BaseTenantAPI):
         if not session:
             session = get_session()
 
-        if hasattr(api.USER, '_uid_to_id'):
-            user.id = api.USER._uid_to_id(user.id)
-        if hasattr(api.TENANT, '_uid_to_id'):
-            user.tenant_id = api.TENANT._uid_to_id(user.tenant_id)
+        if hasattr(api.USER, 'uid_to_id'):
+            user.id = api.USER.uid_to_id(user.id)
+        if hasattr(api.TENANT, 'uid_to_id'):
+            user.tenant_id = api.TENANT.uid_to_id(user.tenant_id)
 
         ura = aliased(models.UserRoleAssociation)
         tenant = aliased(models.Tenant)
@@ -150,10 +153,10 @@ class TenantAPI(api.BaseTenantAPI):
         if not session:
             session = get_session()
 
-        if hasattr(api.USER, '_uid_to_id'):
-            user.id = api.USER._uid_to_id(user.id)
-        if hasattr(api.TENANT, '_uid_to_id'):
-            user.tenant_id = api.TENANT._uid_to_id(user.tenant_id)
+        if hasattr(api.USER, 'uid_to_id'):
+            user.id = api.USER.uid_to_id(user.id)
+        if hasattr(api.TENANT, 'uid_to_id'):
+            user.tenant_id = api.TENANT.uid_to_id(user.tenant_id)
 
         ura = aliased(models.UserRoleAssociation)
         tenant = aliased(models.Tenant)
@@ -253,8 +256,8 @@ class TenantAPI(api.BaseTenantAPI):
         if not session:
             session = get_session()
 
-        if hasattr(api.TENANT, '_uid_to_id'):
-            id = self._uid_to_id(id)
+        if hasattr(api.TENANT, 'uid_to_id'):
+            id = self.uid_to_id(id)
 
         a_user = session.query(models.UserRoleAssociation).filter_by(\
             tenant_id=id).first()
@@ -269,8 +272,8 @@ class TenantAPI(api.BaseTenantAPI):
         if not session:
             session = get_session()
 
-        if hasattr(api.TENANT, '_uid_to_id'):
-            id = self._uid_to_id(id)
+        if hasattr(api.TENANT, 'uid_to_id'):
+            id = self.uid_to_id(id)
 
         # TODO(dolph): why are we using .copy() here?
         data = values.copy()
@@ -286,8 +289,8 @@ class TenantAPI(api.BaseTenantAPI):
         if not session:
             session = get_session()
 
-        if hasattr(api.TENANT, '_uid_to_id'):
-            id = self._uid_to_id(id)
+        if hasattr(api.TENANT, 'uid_to_id'):
+            id = self.uid_to_id(id)
 
         with session.begin():
             tenant_ref = self._get_by_id(id, session)
@@ -297,8 +300,8 @@ class TenantAPI(api.BaseTenantAPI):
         if not session:
             session = get_session()
 
-        if hasattr(api.TENANT, '_uid_to_id'):
-            tenant_id = self._uid_to_id(tenant_id)
+        if hasattr(api.TENANT, 'uid_to_id'):
+            tenant_id = self.uid_to_id(tenant_id)
 
         endpointTemplates = aliased(models.EndpointTemplates)
         q = session.query(endpointTemplates).\
@@ -315,17 +318,17 @@ class TenantAPI(api.BaseTenantAPI):
         if not session:
             session = get_session()
 
-        if hasattr(api.TENANT, '_uid_to_id'):
-            tenant_id = TenantAPI._uid_to_id(tenant_id)
+        if hasattr(api.TENANT, 'uid_to_id'):
+            tenant_id = TenantAPI.uid_to_id(tenant_id)
 
         results = session.query(models.UserRoleAssociation).\
             filter_by(tenant_id=tenant_id)
 
         for result in results:
-            if hasattr(api.USER, '_uid_to_id'):
-                result.user_id = api.USER._id_to_uid(result.user_id)
-            if hasattr(api.TENANT, '_uid_to_id'):
-                result.tenant_id = api.TENANT._id_to_uid(result.tenant_id)
+            if hasattr(api.USER, 'uid_to_id'):
+                result.user_id = api.USER.id_to_uid(result.user_id)
+            if hasattr(api.TENANT, 'uid_to_id'):
+                result.tenant_id = api.TENANT.id_to_uid(result.tenant_id)
 
         return results
 

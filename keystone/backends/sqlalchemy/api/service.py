@@ -20,8 +20,8 @@ from keystone.backends import api
 
 
 class ServiceAPI(api.BaseServiceAPI):
-    def __init__(self):
-        pass
+    def __init__(self, *args, **kw):
+        super(ServiceAPI, self).__init__(*args, **kw)
 
     # pylint: disable=W0221
     def create(self, values):

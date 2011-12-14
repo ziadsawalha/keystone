@@ -44,7 +44,7 @@ def db_version(options):
     print repo_path, sql_connection
     try:
         return versioning_api.db_version(sql_connection, repo_path)
-    except versioning_exceptions.DatabaseNotControlledError, e:
+    except versioning_exceptions.DatabaseNotControlledError:
         msg = (_("database '%(sql_connection)s' is not under "
                  "migration control") % locals())
         raise fault.DatabaseMigrationError(msg)
@@ -92,7 +92,7 @@ def version_control(options):
     sql_connection = options['sql_connection']
     try:
         _version_control(options)
-    except versioning_exceptions.DatabaseAlreadyControlledError, e:
+    except versioning_exceptions.DatabaseAlreadyControlledError:
         msg = (_("database '%(sql_connection)s' is already under migration "
                "control") % locals())
         raise fault.DatabaseMigrationError(msg)

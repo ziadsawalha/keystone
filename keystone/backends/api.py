@@ -19,6 +19,9 @@
 
 #Base APIs
 class BaseUserAPI(object):
+    def __init__(self, *args, **kw):
+        pass
+
     def get_all(self):
         raise NotImplementedError
 
@@ -85,6 +88,9 @@ class BaseUserAPI(object):
 
 
 class BaseTokenAPI(object):
+    def __init__(self, *args, **kw):
+        pass
+
     def create(self, values):
         raise NotImplementedError
 
@@ -105,6 +111,9 @@ class BaseTokenAPI(object):
 
 
 class BaseTenantAPI(object):
+    def __init__(self, *args, **kw):
+        pass
+
     def create(self, values):
         raise NotImplementedError
 
@@ -146,6 +155,9 @@ class BaseTenantAPI(object):
 
 
 class BaseRoleAPI(object):
+    def __init__(self, *args, **kw):
+        pass
+
     def create(self, values):
         raise NotImplementedError
 
@@ -196,6 +208,9 @@ class BaseRoleAPI(object):
 
 
 class BaseEndpointTemplateAPI(object):
+    def __init__(self, *args, **kw):
+        pass
+
     def create(self, values):
         raise NotImplementedError
 
@@ -249,7 +264,10 @@ class BaseEndpointTemplateAPI(object):
         raise NotImplementedError
 
 
-class BaseServiceAPI:
+class BaseServiceAPI(object):
+    def __init__(self, *args, **kw):
+        pass
+
     def create(self, values):
         raise NotImplementedError
 
@@ -276,6 +294,9 @@ class BaseServiceAPI:
 
 
 class BaseCredentialsAPI(object):
+    def __init__(self, *args, **kw):
+        pass
+
     def create(self, values):
         raise NotImplementedError
 

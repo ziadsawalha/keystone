@@ -14,8 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" Tenant manager module """
+""" Tenant manager module
 
+TODO: move functionality into here. Ex:
+
+    def get_tenant(self, context, tenant_id):
+        '''Return info for a tenant if it is valid.'''
+        return self.driver.get(tenant_id)
+"""
 
 import keystone.backends.api as api
 
@@ -24,7 +30,3 @@ class Manager(object):
     def __init__(self, options):
         self.options = options
         self.driver = api.TENANT
-
-    def get_tenant(self, context, tenant_id):
-        """Return info for a tenant if it is valid."""
-        return self.driver.get(tenant_id)

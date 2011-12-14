@@ -14,9 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" Token manager module """
+""" Token manager module
 
-from keystone import utils
+TODO: move functionality into here. Ex:
+
+    def get_token(self, context, token_id):
+        '''Return info for a token if it is valid.'''
+        return self.driver.get(token_id)
+"""
+
 import keystone.backends.api as api
 
 
@@ -24,7 +30,3 @@ class Manager(object):
     def __init__(self, options):
         self.options = options
         self.driver = api.TOKEN
-
-    def get_token(self, context, token_id):
-        """Return info for a token if it is valid."""
-        return self.driver.get(token_id)

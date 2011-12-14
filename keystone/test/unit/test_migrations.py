@@ -38,7 +38,7 @@ class TestMigrations(unittest.TestCase):
     """Test sqlalchemy-migrate migrations"""
 
     TEST_DATABASES = {'sqlite': 'sqlite:///migration.db'}
-    
+
     REPOSITORY_PATH = os.path.abspath(os.path.join(os.path.abspath(__file__),
                                 os.pardir, os.pardir, os.pardir, 'backends',
                                 'sqlalchemy', 'migrate_repo'))

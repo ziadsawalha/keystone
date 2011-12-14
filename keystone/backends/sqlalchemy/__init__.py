@@ -37,7 +37,9 @@ API_PREFIX = 'keystone.backends.sqlalchemy.api.'
 
 
 class Driver():
-    def __init__(self, options, *args, **kwargs):
+    def __init__(self, options):
+        self.session = None
+        self._engine = None
         connection_str = options['sql_connection']
         model_list = ast.literal_eval(options["backend_entities"])
 
@@ -75,7 +77,8 @@ class Driver():
             if table in tables:
                 tables_to_create.append(table)
 
-        models.Base.metadata.create_all(self._engine, tables=tables_to_create, checkfirst=True)
+        models.Base.metadata.create_all(self._engine, tables=tables_to_create,
+                                        checkfirst=True)
 
     def _init_session_maker(self):
         self.session = sessionmaker(

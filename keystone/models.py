@@ -187,15 +187,15 @@ class Resource(dict):
         return {root_name: self.strip_null_fields(self.copy())}
 
     @staticmethod
-    def strip_null_fields(d):
+    def strip_null_fields(dict_object):
         """ Strips null fields from dict"""
-        for k, v in d.items():
+        for k, v in dict_object.items():
             if v is None:
-                del d[k]
-        return d
+                del dict_object[k]
+        return dict_object
 
     @staticmethod
-    def write_dict_to_xml(d, xml, tags=None):
+    def write_dict_to_xml(dict_object, xml, tags=None):
         """ Attempts to convert a dict into XML as best as possible.
         Converts named keys and attributes and recursively calls for
         any values are are embedded dicts
@@ -205,7 +205,7 @@ class Resource(dict):
         """
         if tags is None:
             tags = []
-        for name, value in d.iteritems():
+        for name, value in dict_object.iteritems():
             if isinstance(value, dict):
                 element = etree.SubElement(xml, name)
                 Resource.write_dict_to_xml(value, element)
@@ -230,20 +230,20 @@ class Resource(dict):
                         del xml.attrib[name]
 
     @staticmethod
-    def write_xml_to_dict(xml, d):
+    def write_xml_to_dict(xml, dict_object):
         """ Attempts to update a dict with XML as best as possible."""
         for key, value in xml.items():
-            d[key] = value
+            dict_object[key] = value
         for element in xml.iterdescendants():
             name = element.tag
             if "}" in name:
                 #trim away namespace if it is there
                 name = name[name.rfind("}") + 1:]
             if element.attrib == {}:
-                d[name] = element.text
+                dict_object[name] = element.text
             else:
-                d[name] = {}
-                Resource.write_xml_to_dict(element, d[element.tag])
+                dict_object[name] = {}
+                Resource.write_xml_to_dict(element, dict_object[element.tag])
 
     def apply_type_mappings(self, type_mappings):
         """ Applies type mappings to dict values
@@ -265,7 +265,7 @@ class Resource(dict):
         d = self.to_dict()
         if hints:
             if "types" in hints:
-                self.apply_type_mappings(d, hints["types"])
+                Resource.apply_type_mappings(d, hints["types"])
         return json.dumps(d)
 
     def to_xml(self, hints=None):
@@ -423,13 +423,13 @@ class Tenant(Resource):
             hints['tags'] = ["description"]
         return super(Tenant, cls).from_xml(xml_str, hints=hints)
 
-    def to_dom(self, tags=None):
+    def to_dom(self, xmlns=None, tags=None):
         if tags is None:
             tags = ["description"]
+        if xmlns is None:
+            xmlns = "http://docs.openstack.org/identity/api/v2.0"
 
-        return super(Tenant, self).to_dom(
-                        xmlns="http://docs.openstack.org/identity/api/v2.0",
-                        tags=tags)
+        return super(Tenant, self).to_dom(xmlns=xmlns, tags=tags)
 
     def to_xml(self, hints=None):
         if hints is None:
@@ -480,7 +480,7 @@ class Endpoint(Resource):
     """ Endpoint model """
     def __init__(self, id=None, tenant_id=None, region=None, name=None,
                  type=None, public_url=None, admin_url=None,
-                 internal_url=None,  version_id=None, version_list=None,
+                 internal_url=None, version_id=None, version_list=None,
                  version_info=None,
                  *args, **kw):
         super(Endpoint, self).__init__(id=id, tenant_id=tenant_id,
