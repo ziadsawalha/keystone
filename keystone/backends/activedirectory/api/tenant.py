@@ -1,10 +1,12 @@
 import ldap
+import logging
 import uuid
 
 from keystone.backends.api import BaseTenantAPI
-from keystone.backends.sqlalchemy.api.tenant import TenantAPI as SQLTenantAPI
+#from keystone.backends.sqlalchemy.api.tenant import TenantAPI as SQLTenantAPI
+from keystone import models
 
-from .. import models
+#from .. import models
 from .base import  BaseLdapAPI, add_redirects
 
 
@@ -77,4 +79,4 @@ class TenantAPI(BaseLdapAPI, BaseTenantAPI):
             res.append(self.api.user.get(self.api.user._dn_to_id(user_dn)))
         return res
 
-    add_redirects(locals(), SQLTenantAPI, ['get_all_endpoints'])
+    #add_redirects(locals(), SQLTenantAPI, ['get_all_endpoints'])

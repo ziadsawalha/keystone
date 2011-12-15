@@ -1,3 +1,4 @@
+import os
 import unittest2 as unittest
 import uuid
 
@@ -5,31 +6,53 @@ from keystone import backends
 import keystone.backends.api as api
 from keystone import models
 from keystone import utils
+from keystone.test.unit.test_backends import BackendTestCase
 
 
-class BackendTestCase(unittest.TestCase):
+class ADBackendTestCase(BackendTestCase):
     """
-    Base class to run tests for Keystone backends
+    Base class to run tests for Active Directory backend
     """
 
     def setUp(self, backend_name=None, settings=None):
-        super(BackendTestCase, self).setUp()
         if backend_name is None:
-            backend_name = 'keystone.backends.sqlalchemy'
+            backend_name = 'keystone.backends.activedirectory'
 
         if settings is None:
+            cacertpath = os.path.normpath(
+                os.path.join(__file__, os.pardir, os.pardir,
+                             'etc', 'AD-SQL-STUB.pem'))
+            assert os.path.exists(cacertpath)
+
             settings = {
+                "server": "AD-SQL-STUB.openstack.local",
+                "use_ssl": "True",
+                "cacertfile": cacertpath,
+                "port": "636",
+                "user": "openstack\keystone",
+                "password": "Password1",
+                "root": "'ou=tenants,dc=openstack,dc=local'",
+                "role_map":
+                "'Admin':'cn=Domain Admins,cn=Users,dc=openstack,dc=local'",
+                "backend_entities": "['Tenant']"
+                }
+
+        super(ADBackendTestCase, self).setUp(
+            backend_name=backend_name,
+            settings=settings)
+
+        # Init backends module constants and load supporting backends
+        backends.configure_backends({
+            'backends': 'keystone.backends.sqlalchemy',
+            'keystone.backends.sqlalchemy':
+                {
                     "sql_connection": "sqlite:///",
                     "backend_entities": "['UserRoleAssociation', 'Endpoints',\
-                                         'Role', 'Tenant', 'User',\
+                                         'Role', 'User',\
                                          'Credentials', 'EndpointTemplates',\
                                          'Token', 'Service']",
                     "sql_idle_timeout": "30"
-                    }
-
-        # Init backends module constants
-        backends.configure_backends({
-            'backends': None,
+                    },
             "keystone-service-admin-role": "KeystoneServiceAdmin",
             "keystone-admin-role": "KeystoneAdmin",
             "hash-password": "False"
@@ -38,6 +61,7 @@ class BackendTestCase(unittest.TestCase):
         # Init instance of backend
         self.backend = utils.import_module(backend_name)
         self.backend.configure_backend(settings)
+
 
     def test_registration(self):
         self.assertIsNotNone(backends.api.CREDENTIALS)

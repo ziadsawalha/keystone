@@ -1,7 +1,5 @@
 from collections import Mapping
 
-#__all__ = ['UserRoleAssociation', 'Role', 'Tenant', 'User',
-#           'Credentials']
 __all__ = ['Tenant']
 
 def create_model(name, attrs):

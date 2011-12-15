@@ -2,8 +2,8 @@ import ldap
 import logging
 
 from .tenant import TenantAPI
-from .user import UserAPI
-from .role import RoleAPI
+#from .user import UserAPI
+#from .role import RoleAPI
 
 LOG = logging.getLogger('keystone.backends.activedirectory.api')
 
@@ -45,21 +45,22 @@ def safe_iter(attrs):
 
 
 class API(object):
-    apis = ['tenant', 'user', 'role']
+    apis = ['tenant']
 
     def __init__(self, options):
-        self.server = options['server']
-        self.use_ssl = options['use_ssl']
+        self.server = options['server'] if 'server' in options else 'localhost'
+        self.use_ssl = options['use_ssl'] if 'use_ssl' in options else False
         self.cacertfile = options['cacertfile']
-        self.use_port = options['port']
+        self.port = options['port'] if 'port' in options \
+                    else 389 if self.use_ssl else 636
         self.user = options['user']
         self.password = options['password']
         self.root = options['root']
         self.role_map = options['role_map']
 
         self.tenant = TenantAPI(self, options)
-        self.user = UserAPI(self, options)
-        self.role = RoleAPI(self, options)
+        #self.user = UserAPI(self, options)
+        #self.role = RoleAPI(self, options)
 
     def get_connection(self, user=None, password=None):
         ldap.set_option(ldap.OPT_REFERRALS, 0)
@@ -72,18 +73,20 @@ class API(object):
             if self.cacertfile:
                 ldap.set_option(ldap.OPT_X_TLS_CACERTFILE, self.cacertfile)
             if self.port:
-                conn = ldap.initialize(
-                    'ldaps://%s:%s' % (self.server, self.port))
+                url = 'ldaps://%s:%s' % (self.server, self.port)
             else:
-                conn = ldap.initialize('ldaps://%s' % self.server)
+                url = 'ldaps://%s' % self.server
         else:
-            conn = ldap.initialize('ldap://%s' % self.server)
+            url = 'ldap://%s' % self.server
 
+        LOG.debug('AD initializing to: %s' % url)
+        self.LDAP  = ldap.initialize(url)
         ldap.set_option(ldap.OPT_PROTOCOL_VERSION, 3)
-        self.LDAP.simple_bind_s(self.login, self.password)
+        LOG.debug('AD binding with: %s' % self.user)
+        self.LDAP.simple_bind_s(self.user, self.password)
         LOG.debug("Logged in as: %s", self.LDAP.whoami_s())
 
-        return conn
+        return self.LDAP
 
     def connect(self):
         if not self.conn:
