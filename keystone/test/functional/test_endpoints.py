@@ -428,10 +428,10 @@ class UpdateEndpointTemplateTest(EndpointTemplatesTest):
         self.update_endpoint_template(assert_status=404)
 
 
-class CreateEndpointRefsTest(EndpointTemplatesTest):
+class CreateEndpointsTest(EndpointTemplatesTest):
 
     def setUp(self, *args, **kwargs):
-        super(CreateEndpointRefsTest, self).setUp(*args, **kwargs)
+        super(CreateEndpointsTest, self).setUp(*args, **kwargs)
         self.tenant = self.create_tenant().json['tenant']
 
     def test_endpoint_create_json_using_expired_token(self):
@@ -555,9 +555,9 @@ class CreateEndpointRefsTest(EndpointTemplatesTest):
                 'Accept': 'application/xml'})
 
 
-class GetEndPointTest(EndpointTemplatesTest):
+class GetEndpointsTest(EndpointTemplatesTest):
     def setUp(self, *args, **kwargs):
-        super(GetEndPointTest, self).setUp(*args, **kwargs)
+        super(GetEndpointsTest, self).setUp(*args, **kwargs)
 
         self.tenant = self.create_tenant().json['tenant']
 
@@ -639,9 +639,9 @@ class DeleteEndpointsTest(EndpointTemplatesTest):
             self.endpoint_template['id'], assert_status=401)
 
 
-class GetEndPointsForTokenTest(EndpointTemplatesTest):
+class GetEndpointsForTokenTest(EndpointTemplatesTest):
     def setUp(self, *args, **kwargs):
-        super(GetEndPointsForTokenTest, self).setUp(*args, **kwargs)
+        super(GetEndpointsForTokenTest, self).setUp(*args, **kwargs)
         password = common.unique_str()
         self.tenant = self.create_tenant().json['tenant']
         self.user = self.create_user(user_password=password,

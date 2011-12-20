@@ -426,10 +426,24 @@ class KeystoneTest(object):
         self.server = service
         self.admin_server = admin
 
-        # Load sample data
-        from keystone.test import sampledata
+        # Load bootstrap data
+        from keystone import manage
         manage_args = ['--config-file', self.conf_fp.name]
-        sampledata.load_fixture(args=manage_args)
+        manage.parse_args(args=manage_args)
+        #TODO(zns): make this come from config
+        options['keystone-admin-role'] = 'Admin'
+        options['keystone-service-admin-role'] = 'KeystoneServiceAdmin'
+
+        #TODO(zns): this should end up being run by a 'bootstrap' script
+        fixtures = [
+            ('role', 'add', options['keystone-admin-role']),
+            ('user', 'add', 'admin', 'secrete'),
+            ('role', 'grant', options['keystone-admin-role'], 'admin'),
+            ('role', 'add', options['keystone-service-admin-role']),
+            ('role', 'add', 'Member'),
+            ]
+        for cmd in fixtures:
+            manage.process(*cmd)
 
     def tearDown(self):
         # kill the keystone server

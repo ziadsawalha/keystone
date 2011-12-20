@@ -59,6 +59,7 @@ class GetServicesTest(ServicesTest):
 
     def test_get_services_using_disabled_token(self):
         self.admin_token = self.disabled_admin_token
+        print "T=",self.disabled_admin_token
         self.list_services(assert_status=403)
 
     def test_get_services_using_missing_token(self):

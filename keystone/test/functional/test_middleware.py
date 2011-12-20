@@ -85,7 +85,7 @@ except ImportError as e:
 #                'auth_port': '35357',
 #                'auth_protocol': 'http',
 #                'auth_uri': 'http://localhost:35357/',
-#                'admin_token': '999888777666',
+#                'admin_token': self.admin_token,
 #                'set log_facility': 'LOG_NULL'}
 #        super(TestSwiftMiddleware, self).setUp(swift_auth, settings)
 
