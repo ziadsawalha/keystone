@@ -41,7 +41,7 @@ class TenantTest(common.FunctionalTestCase):
         self._assertValidTenant(xml)
 
         description = xml.find('{%s}description' % self.xmlns)
-        self.assertIsNotNone(description.text)
+        self.assertIsNotNone(description)
         self.assertIn(xml.get('enabled'), ['true', 'false'])
         return xml
 

@@ -111,6 +111,40 @@ class TestModelsTenant(unittest.TestCase):
         tenant = Tenant(id=9, name="the tenant", blank=None)
         self.assertTrue(tenant.validate())
 
+    def test_tenant_description_values(self):
+        tenant = Tenant(id=10, name="the tenant")
+        self.assertIsNone(tenant.description,
+                          "Uninitialized description should be None")
+        xml = tenant.to_dom()
+        desc = xml.find("{http://docs.openstack.org/identity/api/v2.0}"
+                             "description")
+        self.assertIsNone(desc,
+                          "Uninitialized description should not exist in xml")
+
+        tenant = Tenant(id=10, name="the tenant", description=None)
+        self.assertIsNone(tenant.description,
+                          "Description initialized to None should be None")
+        xml = tenant.to_dom()
+        desc = xml.find("{http://docs.openstack.org/identity/api/v2.0}"
+                             "description")
+        self.assertIsNone(desc,
+                          "Uninitialized description should not exist in xml")
+
+        tenant = Tenant(id=10, name="the tenant", description='')
+        self.assertEquals(tenant.description, '',
+            'Description initialized to empty string should be empty string')
+        xml = tenant.to_dom()
+        desc = xml.find("description")
+        self.assertEquals(desc.text, None,
+                          "Blank Description should show as empty tag in xml")
+        
+        tenant = Tenant(id=10, name="the tenant", description=None)
+        xml = tenant.to_xml(hints={"tags": ["description"]})
+        xml = tenant.to_dom()
+        desc = xml.find("description")
+        self.assertEquals(desc.text, None,
+                          "'None' Description should show as empty tag in xml")
+
 
 if __name__ == '__main__':
     unittest.main()
