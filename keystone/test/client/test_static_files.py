@@ -51,7 +51,7 @@ class TestAdminStaticFiles(common.FunctionalTestCase):
         if not common.isSsl():
             #TODO(ziad): Caller hangs in SSL (but works with cURL)
             r = self.admin_request(path='/identityadminguide.pdf')
-            self.assertTrue(r.content-length > 1024)
+            self.assertTrue('pdf' in r.getheader('Content-Type'))
 
     def test_wadl_contract(self):
         r = self.admin_request(path='/identity-admin.wadl')

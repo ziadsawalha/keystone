@@ -29,6 +29,7 @@ class EndpointTemplatesTest(common.FunctionalTestCase):
             type=self.service['type']).\
             json['OS-KSCATALOG:endpointTemplate']
 
+        self.fixture_create_service_admin()
         admin_token = self.admin_token
         self.admin_token = self.service_admin_token
         self.my_service = self.create_service().json['OS-KSADM:service']
@@ -156,10 +157,12 @@ class GetEndpointTemplatesTest(EndpointTemplatesTest):
         self.assertIsNotNone(r.json['OS-KSCATALOG:endpointTemplates'])
 
     def test_get_endpoint_templates_using_expired_auth_token(self):
+        self.fixture_create_expired_token()
         self.admin_token = self.expired_admin_token
         self.list_endpoint_templates(assert_status=403)
 
     def test_get_endpoint_templates_using_disabled_auth_token(self):
+        self.fixture_create_disabled_user_and_token()
         self.admin_token = self.disabled_admin_token
         self.list_endpoint_templates(assert_status=403)
 
@@ -178,11 +181,13 @@ class GetEndpointTemplatesTest(EndpointTemplatesTest):
             "{%s}endpointTemplates" % self.xmlns_kscatalog)
 
     def test_get_endpoint_templates_xml_expired_auth_token(self):
+        self.fixture_create_expired_token()
         self.admin_token = self.expired_admin_token
         self.get_endpoint_templates(assert_status=403, headers={
             'Accept': 'application/xml'})
 
     def test_get_endpoint_templates_xml_disabled_auth_token(self):
+        self.fixture_create_disabled_user_and_token()
         self.admin_token = self.disabled_admin_token
         self.get_endpoint_templates(assert_status=403, headers={
             'Accept': 'application/xml'})
@@ -222,11 +227,13 @@ class GetEndpointTemplatesByServiceTest(EndpointTemplatesTest):
             self.service['type'])
 
     def test_get_endpoint_templates_using_expired_auth_token(self):
+        self.fixture_create_expired_token()
         self.admin_token = self.expired_admin_token
         self.list_endpoint_templates(
             service_id=self.service['id'], assert_status=403)
 
     def test_get_endpoint_templates_using_disabled_auth_token(self):
+        self.fixture_create_disabled_user_and_token()
         self.admin_token = self.disabled_admin_token
         self.list_endpoint_templates(
             service_id=self.service['id'], assert_status=403)
@@ -254,12 +261,14 @@ class GetEndpointTemplatesByServiceTest(EndpointTemplatesTest):
         self.assertEqual(endpoint_template.get('type'), self.service['type'])
 
     def test_get_endpoint_templates_xml_expired_auth_token(self):
+        self.fixture_create_expired_token()
         self.admin_token = self.expired_admin_token
         self.get_endpoint_templates_by_service(
             service_id=self.service['id'], assert_status=403, headers={
             'Accept': 'application/xml'})
 
     def test_get_endpoint_templates_xml_disabled_auth_token(self):
+        self.fixture_create_disabled_user_and_token()
         self.admin_token = self.disabled_admin_token
         self.get_endpoint_templates_by_service(
             service_id=self.service['id'], assert_status=403, headers={
@@ -289,11 +298,13 @@ class GetEndpointTemplateTest(EndpointTemplatesTest):
 #        self.assertIsNotNone(r.json['endpointTemplate'])
 
     def test_get_endpoint_using_expired_auth_token(self):
+        self.fixture_create_expired_token()
         self.admin_token = self.expired_admin_token
         self.fetch_endpoint_template(self.endpoint_template['id'],
             assert_status=403)
 
     def test_get_endpoint_using_disabled_auth_token(self):
+        self.fixture_create_disabled_user_and_token()
         self.admin_token = self.disabled_admin_token
         self.fetch_endpoint_template(self.endpoint_template['id'],
             assert_status=403)
@@ -405,6 +416,7 @@ class UpdateEndpointTemplateTest(EndpointTemplatesTest):
 #        self.test_update_endpoint_xml()
 
     def test_update_endpoint_template_with_disabled_token(self):
+        self.fixture_create_disabled_user_and_token()
         self.admin_token = self.disabled_admin_token
         self.update_endpoint_template(self.endpoint_template['id'],
             assert_status=403)
@@ -415,6 +427,7 @@ class UpdateEndpointTemplateTest(EndpointTemplatesTest):
             assert_status=401)
 
     def test_update_endpoint_template_with_expired_token(self):
+        self.fixture_create_expired_token()
         self.admin_token = self.expired_admin_token
         self.update_endpoint_template(self.endpoint_template['id'],
             assert_status=403)
@@ -432,14 +445,16 @@ class CreateEndpointsTest(EndpointTemplatesTest):
 
     def setUp(self, *args, **kwargs):
         super(CreateEndpointsTest, self).setUp(*args, **kwargs)
-        self.tenant = self.create_tenant().json['tenant']
+        self.fixture_create_normal_tenant()
 
     def test_endpoint_create_json_using_expired_token(self):
+        self.fixture_create_expired_token()
         self.admin_token = self.expired_admin_token
         self.create_endpoint_for_tenant(self.tenant['id'],
             self.endpoint_template['id'], assert_status=403)
 
     def test_endpoint_create_json_using_disabled_token(self):
+        self.fixture_create_disabled_user_and_token()
         self.admin_token = self.disabled_admin_token
         self.create_endpoint_for_tenant(self.tenant['id'],
             self.endpoint_template['id'], assert_status=403)
@@ -496,6 +511,7 @@ class CreateEndpointsTest(EndpointTemplatesTest):
             self.endpoint_template["internalURL"])
 
     def test_endpoint_create_xml_using_expired_token(self):
+        self.fixture_create_expired_token()
         self.admin_token = self.expired_admin_token
         data = ('<?xml version="1.0" encoding="UTF-8"?> '
             '<endpointTemplate '
@@ -512,6 +528,7 @@ class CreateEndpointsTest(EndpointTemplatesTest):
                 'Accept': 'application/xml'})
 
     def test_endpoint_create_xml_using_disabled_token(self):
+        self.fixture_create_disabled_user_and_token()
         self.admin_token = self.disabled_admin_token
         data = ('<?xml version="1.0" encoding="UTF-8"?> '
             '<endpointTemplate '
@@ -558,19 +575,20 @@ class CreateEndpointsTest(EndpointTemplatesTest):
 class GetEndpointsTest(EndpointTemplatesTest):
     def setUp(self, *args, **kwargs):
         super(GetEndpointsTest, self).setUp(*args, **kwargs)
-
-        self.tenant = self.create_tenant().json['tenant']
+        self.fixture_create_normal_tenant()
 
     def test_get_tenant_endpoint_xml(self):
         self.get_tenant_endpoints(self.tenant['id'], assert_status=200,
             headers={"Accept": "application/xml"})
 
     def test_get_tenant_endpoint_xml_using_expired_auth_token(self):
+        self.fixture_create_expired_token()
         self.admin_token = self.expired_admin_token
         self.get_tenant_endpoints(self.tenant['id'], assert_status=403,
             headers={"Accept": "application/xml"})
 
     def test_get_tenant_endpoint_xml_using_disabled_auth_token(self):
+        self.fixture_create_disabled_user_and_token()
         self.admin_token = self.disabled_admin_token
         self.get_tenant_endpoints(self.tenant['id'], assert_status=403,
             headers={"Accept": "application/xml"})
@@ -590,10 +608,12 @@ class GetEndpointsTest(EndpointTemplatesTest):
         self.assertIsNotNone(r.json.get('endpoints'), r.json)
 
     def test_get_tenant_endpoint_json_using_expired_auth_token(self):
+        self.fixture_create_expired_token()
         self.admin_token = self.expired_admin_token
         self.get_tenant_endpoints(self.tenant['id'], assert_status=403)
 
     def test_get_endpoint_json_using_disabled_auth_token(self):
+        self.fixture_create_disabled_user_and_token()
         self.admin_token = self.disabled_admin_token
         self.get_tenant_endpoints(self.tenant['id'], assert_status=403)
 
@@ -609,8 +629,7 @@ class GetEndpointsTest(EndpointTemplatesTest):
 class DeleteEndpointsTest(EndpointTemplatesTest):
     def setUp(self, *args, **kwargs):
         super(DeleteEndpointsTest, self).setUp(*args, **kwargs)
-
-        self.tenant = self.create_tenant().json['tenant']
+        self.fixture_create_normal_tenant()
         self.create_endpoint_for_tenant(self.tenant['id'],
             self.endpoint_template['id'])
 
@@ -619,11 +638,13 @@ class DeleteEndpointsTest(EndpointTemplatesTest):
             self.endpoint_template['id'], assert_status=204)
 
     def test_delete_endpoint_using_expired_auth_token(self):
+        self.fixture_create_expired_token()
         self.admin_token = self.expired_admin_token
         self.delete_tenant_endpoint(self.tenant['id'],
             self.endpoint_template['id'], assert_status=403)
 
     def test_delete_endpoint_using_disabled_auth_token(self):
+        self.fixture_create_disabled_user_and_token()
         self.admin_token = self.disabled_admin_token
         self.delete_tenant_endpoint(self.tenant['id'],
             self.endpoint_template['id'], assert_status=403)
@@ -642,11 +663,8 @@ class DeleteEndpointsTest(EndpointTemplatesTest):
 class GetEndpointsForTokenTest(EndpointTemplatesTest):
     def setUp(self, *args, **kwargs):
         super(GetEndpointsForTokenTest, self).setUp(*args, **kwargs)
-        password = common.unique_str()
-        self.tenant = self.create_tenant().json['tenant']
-        self.user = self.create_user(user_password=password,
-            tenant_id=self.tenant['id']).json['user']
-        self.user['password'] = password
+        self.fixture_create_normal_tenant()
+        self.fixture_create_tenant_user()
 
         self.services = {}
         self.endpoint_templates = {}
@@ -658,53 +676,54 @@ class GetEndpointsForTokenTest(EndpointTemplatesTest):
                 json['OS-KSCATALOG:endpointTemplate']
             self.create_endpoint_for_tenant(self.tenant['id'],
                 self.endpoint_templates[x]['id'])
-        r = self.authenticate(self.user['name'], self.user['password'],
-            self.tenant['id'], assert_status=200)
-        self.token = r.json['access']['token']['id']
 
     def test_get_token_endpoints_xml(self):
-        self.get_token_endpoints(self.token, assert_status=200,
+        self.get_token_endpoints(self.tenant_user_token['id'], assert_status=200,
             headers={"Accept": "application/xml"})
 
     def test_get_token_endpoints_xml_using_expired_auth_token(self):
+        self.fixture_create_expired_token()
         self.admin_token = self.expired_admin_token
-        self.get_token_endpoints(self.token, assert_status=403,
+        self.get_token_endpoints(self.tenant_user_token['id'], assert_status=403,
             headers={"Accept": "application/xml"})
 
     def test_get_token_endpoints_xml_using_disabled_auth_token(self):
+        self.fixture_create_disabled_user_and_token()
         self.admin_token = self.disabled_admin_token
-        self.get_token_endpoints(self.token, assert_status=403,
+        self.get_token_endpoints(self.tenant_user_token['id'], assert_status=403,
             headers={"Accept": "application/xml"})
 
     def test_get_token_endpoints_xml_using_missing_auth_token(self):
         self.admin_token = ''
-        self.get_token_endpoints(self.token, assert_status=401,
+        self.get_token_endpoints(self.tenant_user_token['id'], assert_status=401,
             headers={"Accept": "application/xml"})
 
     def test_get_token_endpoints_xml_using_invalid_auth_token(self):
         self.admin_token = common.unique_str()
-        self.get_token_endpoints(self.token, assert_status=401,
+        self.get_token_endpoints(self.tenant_user_token['id'], assert_status=401,
             headers={"Accept": "application/xml"})
 
     def test_get_token_endpoints_json(self):
-        r = self.get_token_endpoints(self.token, assert_status=200)
+        r = self.get_token_endpoints(self.tenant_user_token['id'], assert_status=200)
         self.assertIsNotNone(r.json.get('endpoints'), r.json)
 
     def test_get_token_endpoints_json_using_expired_auth_token(self):
+        self.fixture_create_expired_token()
         self.admin_token = self.expired_admin_token
-        self.get_token_endpoints(self.token, assert_status=403)
+        self.get_token_endpoints(self.tenant_user_token['id'], assert_status=403)
 
     def test_get_token_endpoints_json_using_disabled_auth_token(self):
+        self.fixture_create_disabled_user_and_token()
         self.admin_token = self.disabled_admin_token
-        self.get_token_endpoints(self.token, assert_status=403)
+        self.get_token_endpoints(self.tenant_user_token['id'], assert_status=403)
 
     def test_get_token_endpoints_json_using_missing_auth_token(self):
         self.admin_token = ''
-        self.get_token_endpoints(self.token, assert_status=401)
+        self.get_token_endpoints(self.tenant_user_token['id'], assert_status=401)
 
     def test_get_token_endpoints_json_using_invalid_auth_token(self):
         self.admin_token = common.unique_str()
-        self.get_token_endpoints(self.token, assert_status=401)
+        self.get_token_endpoints(self.tenant_user_token['id'], assert_status=401)
 
 
 if __name__ == '__main__':

@@ -377,7 +377,8 @@ class KeystoneTest(object):
     def setUp(self):
         self.server = None
         self.admin_server = None
-        self.clear_database()
+
+        """self.clear_database()
         self.construct_temp_conf_file()
 
         # Set client certificate for test client
@@ -444,6 +445,7 @@ class KeystoneTest(object):
             ]
         for cmd in fixtures:
             manage.process(*cmd)
+            """
 
     def tearDown(self):
         # kill the keystone server
