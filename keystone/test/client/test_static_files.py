@@ -3,6 +3,8 @@ from keystone.test.functional import common
 
 
 class TestStaticFiles(common.ApiTestCase):
+    use_server = True
+
     def test_pdf_contract(self):
         if not common.isSsl():
             #TODO(ziad): Caller hangs in SSL (but works with cURL)
@@ -47,6 +49,8 @@ class TestStaticFiles(common.ApiTestCase):
 
 
 class TestAdminStaticFiles(common.FunctionalTestCase):
+    use_server = True
+
     def test_pdf_contract(self):
         if not common.isSsl():
             #TODO(ziad): Caller hangs in SSL (but works with cURL)

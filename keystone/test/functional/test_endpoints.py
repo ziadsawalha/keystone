@@ -678,52 +678,62 @@ class GetEndpointsForTokenTest(EndpointTemplatesTest):
                 self.endpoint_templates[x]['id'])
 
     def test_get_token_endpoints_xml(self):
-        self.get_token_endpoints(self.tenant_user_token['id'], assert_status=200,
-            headers={"Accept": "application/xml"})
+        self.get_token_endpoints(self.tenant_user_token['id'],
+                                 assert_status=200,
+                                 headers={"Accept": "application/xml"})
 
     def test_get_token_endpoints_xml_using_expired_auth_token(self):
         self.fixture_create_expired_token()
         self.admin_token = self.expired_admin_token
-        self.get_token_endpoints(self.tenant_user_token['id'], assert_status=403,
-            headers={"Accept": "application/xml"})
+        self.get_token_endpoints(self.tenant_user_token['id'],
+                                 assert_status=403,
+                                 headers={"Accept": "application/xml"})
 
     def test_get_token_endpoints_xml_using_disabled_auth_token(self):
         self.fixture_create_disabled_user_and_token()
         self.admin_token = self.disabled_admin_token
-        self.get_token_endpoints(self.tenant_user_token['id'], assert_status=403,
-            headers={"Accept": "application/xml"})
+        self.get_token_endpoints(self.tenant_user_token['id'],
+                                 assert_status=403,
+                                 headers={"Accept": "application/xml"})
 
     def test_get_token_endpoints_xml_using_missing_auth_token(self):
         self.admin_token = ''
-        self.get_token_endpoints(self.tenant_user_token['id'], assert_status=401,
-            headers={"Accept": "application/xml"})
+        self.get_token_endpoints(self.tenant_user_token['id'],
+                                 assert_status=401,
+                                 headers={"Accept": "application/xml"})
 
     def test_get_token_endpoints_xml_using_invalid_auth_token(self):
         self.admin_token = common.unique_str()
-        self.get_token_endpoints(self.tenant_user_token['id'], assert_status=401,
-            headers={"Accept": "application/xml"})
+        self.get_token_endpoints(self.tenant_user_token['id'],
+                                 assert_status=401,
+                                 headers={"Accept": "application/xml"})
 
     def test_get_token_endpoints_json(self):
-        r = self.get_token_endpoints(self.tenant_user_token['id'], assert_status=200)
+        r = self.get_token_endpoints(self.tenant_user_token['id'],
+                                     assert_status=200)
         self.assertIsNotNone(r.json.get('endpoints'), r.json)
 
     def test_get_token_endpoints_json_using_expired_auth_token(self):
         self.fixture_create_expired_token()
         self.admin_token = self.expired_admin_token
-        self.get_token_endpoints(self.tenant_user_token['id'], assert_status=403)
+        self.get_token_endpoints(self.tenant_user_token['id'],
+                                 assert_status=403)
 
     def test_get_token_endpoints_json_using_disabled_auth_token(self):
         self.fixture_create_disabled_user_and_token()
         self.admin_token = self.disabled_admin_token
-        self.get_token_endpoints(self.tenant_user_token['id'], assert_status=403)
+        self.get_token_endpoints(self.tenant_user_token['id'],
+                                 assert_status=403)
 
     def test_get_token_endpoints_json_using_missing_auth_token(self):
         self.admin_token = ''
-        self.get_token_endpoints(self.tenant_user_token['id'], assert_status=401)
+        self.get_token_endpoints(self.tenant_user_token['id'],
+                                 assert_status=401)
 
     def test_get_token_endpoints_json_using_invalid_auth_token(self):
         self.admin_token = common.unique_str()
-        self.get_token_endpoints(self.tenant_user_token['id'], assert_status=401)
+        self.get_token_endpoints(self.tenant_user_token['id'],
+                                 assert_status=401)
 
 
 if __name__ == '__main__':

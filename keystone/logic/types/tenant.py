@@ -60,7 +60,7 @@ class Tenant(object):
             if desc is None:
                 description = None
             else:
-                description=desc.text
+                description = desc.text
             return models.Tenant(id=id, name=name, description=description,
                 enabled=set_enabled)
         except etree.LxmlError as e:

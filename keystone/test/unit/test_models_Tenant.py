@@ -1,5 +1,4 @@
 import json
-from lxml import etree
 import unittest2 as unittest
 
 from keystone.models import Tenant
@@ -25,7 +24,7 @@ class TestModelsTenant(unittest.TestCase):
         self.assertTrue(tenant.enabled)
         self.assertEquals(tenant.description, None)
         try:
-            x = tenant.some_bad_property
+            print tenant.some_bad_property
         except AttributeError:
             pass
         except:
@@ -137,7 +136,7 @@ class TestModelsTenant(unittest.TestCase):
         desc = xml.find("description")
         self.assertEquals(desc.text, None,
                           "Blank Description should show as empty tag in xml")
-        
+
         tenant = Tenant(id=10, name="the tenant", description=None)
         xml = tenant.to_xml(hints={"tags": ["description"]})
         xml = tenant.to_dom()

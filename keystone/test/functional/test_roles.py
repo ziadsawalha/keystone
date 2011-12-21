@@ -406,8 +406,8 @@ class GetRoleAssignmentsTest(RolesTest):
     def test_get_role_assignments_xml_using_expired_token(self):
         self.fixture_create_expired_token()
         self.admin_token = self.expired_admin_token
-        self.get_user_roles(self.tenant_user['id'], assert_status=403, headers={
-            'Accept': 'application/xml'})
+        self.get_user_roles(self.tenant_user['id'], assert_status=403,
+                            headers={'Accept': 'application/xml'})
 
     def test_get_role_assignments_using_disabled_token(self):
         self.fixture_create_disabled_user_and_token()
@@ -417,8 +417,8 @@ class GetRoleAssignmentsTest(RolesTest):
     def test_get_role_assignments_xml_using_disabled_token(self):
         self.fixture_create_disabled_user_and_token()
         self.admin_token = self.disabled_admin_token
-        self.get_user_roles(self.tenant_user['id'], assert_status=403, headers={
-            'Accept': 'application/xml'})
+        self.get_user_roles(self.tenant_user['id'], assert_status=403,
+                            headers={'Accept': 'application/xml'})
 
     def test_get_role_assignments_using_missing_token(self):
         self.admin_token = ''
@@ -426,8 +426,8 @@ class GetRoleAssignmentsTest(RolesTest):
 
     def test_get_role_assignments_xml_using_missing_token(self):
         self.admin_token = ''
-        self.get_user_roles(self.tenant_user['id'], assert_status=401, headers={
-            'Accept': 'application/xml'})
+        self.get_user_roles(self.tenant_user['id'], assert_status=401,
+                            headers={'Accept': 'application/xml'})
 
     def test_get_role_assignments_json_using_invalid_token(self):
         self.admin_token = common.unique_str()
@@ -435,8 +435,8 @@ class GetRoleAssignmentsTest(RolesTest):
 
     def test_get_role_assignments_xml_using_invalid_token(self):
         self.admin_token = common.unique_str()
-        self.get_user_roles(self.tenant_user['id'], assert_status=401, headers={
-            'Accept': 'application/xml'})
+        self.get_user_roles(self.tenant_user['id'], assert_status=401,
+                            headers={'Accept': 'application/xml'})
 
 
 class DeleteRoleAssignmentsTest(RolesTest):

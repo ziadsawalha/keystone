@@ -3,6 +3,8 @@ from keystone.test.functional import common
 
 
 class LegacyAuthenticationTest(common.FunctionalTestCase):
+    use_server = True
+
     def setUp(self, *args, **kwargs):
         super(LegacyAuthenticationTest, self).setUp(*args, **kwargs)
 

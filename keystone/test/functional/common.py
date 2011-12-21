@@ -51,7 +51,13 @@ class HttpTestCase(unittest.TestCase):
 
         # Retrieve the response so can go ahead and close the connection
         response = connection.getresponse()
+        logger.debug("%s %s returned %s", method, path, response.status)
+
         response.body = response.read()
+        if response.status != httplib.OK:
+            logger.debug("Response Body:")
+            for line in response.body.split("\n"):
+                logger.debug(line)
 
         # Close the connection
         connection.close()
@@ -190,15 +196,21 @@ class RestfulTestCase(HttpTestCase):
 
 class ApiTestCase(RestfulTestCase):
     """Abstracts REST verbs & resources of the service & admin API."""
+    use_server = False
+
     admin_role_name = 'Admin'
     service_admin_role_name = 'KeystoneServiceAdmin'
     member_role_name = 'Member'
 
-    admin_username = None
-    admin_password = None
+    # Same as KeystoneTest settings
+    admin_username = 'admin'
+    admin_password = 'secrete'
 
     service_token = None
     admin_token = None
+
+    service_api = None
+    admin_api = None
 
     """
     Dict of configuration options to pass to the API controller
@@ -275,6 +287,9 @@ class ApiTestCase(RestfulTestCase):
         return user
 
     def setUp(self):
+        if self.use_server:
+            return
+
         self.service_api = server.ServiceApi(self.options)
         self.admin_api = server.AdminApi(self.options)
 
@@ -312,6 +327,11 @@ class ApiTestCase(RestfulTestCase):
     def request(self, host='127.0.0.1', port=80, method='GET', path='/',
             headers=None, body=None, assert_status=None, server=None):
         """Overrides HttpTestCase and uses local calls"""
+        if self.use_server:
+            # Call a real server (bypass the override)
+            return super(ApiTestCase, self).request(host=host, port=port,
+                                    method=method, path=path, headers=headers,
+                                    body=body, assert_status=assert_status)
         req = Request.blank(path)
         req.method = method
         req.headers = headers
@@ -344,6 +364,10 @@ class ApiTestCase(RestfulTestCase):
     def _decode_response_body(self, response):
         """Override to support webob.Response.
         """
+        if self.use_server:
+            # Call a real server (bypass the override)
+            return super(ApiTestCase, self)._decode_response_body(response)
+
         if response.body != None and response.body.strip():
             if 'application/json' in response.content_type:
                 response.json = self._decode_json(response.body)
@@ -361,6 +385,10 @@ class ApiTestCase(RestfulTestCase):
 
             >>> self.assertResponseSuccessful(response, 203)
         """
+        if self.use_server:
+            # Call a real server (bypass the override)
+            return super(ApiTestCase, self).assertResponseSuccessful(response)
+
         self.assertTrue(response.status_int >= 200 and
                         response.status_int <= 299,
             'Status code %d is outside of the expected range (2xx)\n\n%s' %
@@ -376,10 +404,14 @@ class ApiTestCase(RestfulTestCase):
 
             >>> self.assertResponseStatus(response, 203)
         """
+        if self.use_server:
+            # Call a real server (bypass the override)
+            return super(ApiTestCase, self).assertResponseStatus(response,
+                                                                 assert_status)
+
         self.assertEqual(response.status_int, assert_status,
             'Status code %s is not %s, as expected)\n\n%s' %
             (response.status_int, assert_status, response.body))
-
 
     def service_request(self, version='2.0', path='', port=5000, headers=None,
             **kwargs):
@@ -388,7 +420,8 @@ class ApiTestCase(RestfulTestCase):
         # Initialize headers dictionary
         headers = {} if not headers else headers
 
-        #path = ApiTestCase._version_path(version, path)
+        if self.use_server:
+            path = ApiTestCase._version_path(version, path)
 
         if self.service_token:
             headers['X-Auth-Token'] = self.service_token
@@ -405,7 +438,8 @@ class ApiTestCase(RestfulTestCase):
         # Initialize headers dictionary
         headers = {} if not headers else headers
 
-        #path = ApiTestCase._version_path(version, path)
+        if self.use_server:
+            path = ApiTestCase._version_path(version, path)
 
         if self.admin_token:
             headers['X-Auth-Token'] = self.admin_token
@@ -859,7 +893,6 @@ class FunctionalTestCase(ApiTestCase):
         # TENANT
         self.tenant = self.fixture_create_tenant(
             name="tenant-%s" % uuid.uuid4().hex, enabled=True)
-
 
     def fixture_create_disabled_tenant(self):
         if self.disabled_tenant:
@@ -1451,6 +1484,7 @@ class MiddlewareTestCase(FunctionalTestCase):
     """
     Base class to run tests for Keystone WSGI middleware.
     """
+    use_server = True
 
     def setUp(self, middleware, settings=None):
         super(MiddlewareTestCase, self).setUp()
@@ -1476,6 +1510,22 @@ class MiddlewareTestCase(FunctionalTestCase):
         else:
             self.test_middleware = \
                 middleware.filter_factory(settings)(HeaderApp())
+
+        name = unique_str()
+        r = self.create_tenant(tenant_name=name, assert_status=201)
+        self.tenant = r.json.get('tenant')
+
+        user_name = unique_str()
+        password = unique_str()
+        r = self.create_user(user_name=user_name,
+                                     user_password=password,
+                                     tenant_id=self.tenant['id'])
+        self.tenant_user = r.json.get('user')
+        self.tenant_user['password'] = password
+
+        access = self.authenticate(user_name, password).\
+            json['access']
+        self.tenant_user_token = access['token']
 
         self.services = {}
         self.endpoint_templates = {}
