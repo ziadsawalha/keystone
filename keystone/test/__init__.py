@@ -53,6 +53,7 @@ from nose import core
 from nose import result
 import optparse
 import os
+import subprocess
 import sys
 import tempfile
 import time
@@ -527,7 +528,12 @@ class KeystoneTest(object):
 
 def runtests():
     """This function can be called from 'python setup.py test'."""
-    return SQLTest().run()
+    file = os.path.abspath(os.path.join(BASE_DIR, 'run_tests.py'))
+    params = ["python", file]
+    p = subprocess.Popen(params, cwd=BASE_DIR)
+    result = p.wait()
+    if result:
+        sys.exit(result)
 
 
 class UnitTests(KeystoneTest):
