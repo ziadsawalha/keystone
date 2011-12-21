@@ -48,6 +48,16 @@ if __name__ == '__main__':
                 print 'No test configuration by the name %s found' % filter
                 exit()
 
+    #Always run unit tests
+    params = ["python", __file__, '-O',
+              'SQLTest', 'unit']
+    p = subprocess.Popen(params)
+    result = p.wait()
+    if result:
+        sys.exit(result)
+    
+
+    #Run functional test suites
     if len(TESTS) > 1:
         # We have a problem with resetting SQLAlchemy, so we need to fire
         # off a separate process for each test now
@@ -65,3 +75,5 @@ if __name__ == '__main__':
                 (test_num + 1, len(TESTS), test_cls.config_name)
             if test_cls().run():
                 exit(1)
+
+    #Run client tests

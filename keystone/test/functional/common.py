@@ -351,6 +351,36 @@ class ApiTestCase(RestfulTestCase):
                 response.xml = self._decode_xml(response.body)
         return response
 
+    def assertResponseSuccessful(self, response):
+        """Asserts that a status code lies inside the 2xx range
+
+        :param response: :py:class:`webob.Response` to be
+          verified to have a status code between 200 and 299.
+
+        example::
+
+            >>> self.assertResponseSuccessful(response, 203)
+        """
+        self.assertTrue(response.status_int >= 200 and
+                        response.status_int <= 299,
+            'Status code %d is outside of the expected range (2xx)\n\n%s' %
+            (response.status_int, response.body))
+
+    def assertResponseStatus(self, response, assert_status):
+        """Asserts a specific status code on the response
+
+        :param response: :py:class:`webob.Response`
+        :param assert_status: The specific ``status`` result expected
+
+        example::
+
+            >>> self.assertResponseStatus(response, 203)
+        """
+        self.assertEqual(response.status_int, assert_status,
+            'Status code %s is not %s, as expected)\n\n%s' %
+            (response.status_int, assert_status, response.body))
+
+
     def service_request(self, version='2.0', path='', port=5000, headers=None,
             **kwargs):
         """Returns a request to the service API"""

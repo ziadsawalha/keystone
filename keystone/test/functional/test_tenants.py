@@ -290,7 +290,7 @@ class GetTenantTest(TenantTest):
         tenant = self.assertValidJsonTenantResponse(r)
         self.assertEquals(self.tenant['id'], tenant['id'])
         self.assertEquals(self.tenant['name'], tenant['name'])
-        self.assertEquals(self.tenant['description'], tenant['description'])
+        self.assertFalse('description' in tenant)
         self.assertEquals(self.tenant['enabled'], tenant['enabled'])
 
     def test_get_tenant_xml(self):

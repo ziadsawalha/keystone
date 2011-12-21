@@ -50,6 +50,7 @@ class GetServicesTest(ServicesTest):
         self.assertTrue(len(services))
 
     def test_get_services_using_service_admin_token(self):
+        self.fixture_create_service_admin()
         self.admin_token = self.service_admin_token
         services = self.list_services(assert_status=200).\
             json['OS-KSADM:services']
@@ -57,6 +58,7 @@ class GetServicesTest(ServicesTest):
         self.assertTrue(len(services))
 
     def test_get_services_using_service_admin_token_xml(self):
+        self.fixture_create_service_admin()
         self.admin_token = self.service_admin_token
         r = self.get_services(assert_status=200, headers={
             'Accept': 'application/xml'})
