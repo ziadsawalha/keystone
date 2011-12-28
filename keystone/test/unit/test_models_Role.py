@@ -19,17 +19,13 @@ class TestModelsRole(unittest.TestCase):
         self.assertIsInstance(role, dict, "")
 
     def test_role_static_properties(self):
-        role = Role(id=1, name="the role", enabled=True, blank=None)
-        self.assertEquals(role.id, 1)
+        role = Role(id=1, name="the role", service_id=1, blank=None)
+        self.assertEquals(role.id, "1")
         self.assertEquals(role.name, "the role")
-        self.assertTrue(role.enabled)
+        self.assertEquals(role.service_id, "1")
         self.assertEquals(role.description, None)
-        try:
-            x = role.some_bad_property
-        except AttributeError:
-            pass
-        except:
-            self.assert_(False, "Invalid attribute on role should fail")
+        self.assertRaises(AttributeError, getattr, role,
+                          'some_bad_property')
 
     def test_role_properties(self):
         role = Role(id=1, name="the role", blank=None)
@@ -42,8 +38,18 @@ class TestModelsRole(unittest.TestCase):
         json_str = role.to_json()
         d1 = json.loads(json_str)
         d2 = json.loads('{"role": {"name": "the role", \
-                          "id": 1, "dynamic": "test"}}')
-        self.assertEquals(d1, d2)
+                          "id": "1", "dynamic": "test"}}')
+        self.assertDictEqual(d1, d2)
+
+    def test_role_json_serialization_mapped(self):
+        role = Role(id=1, name="the role",
+                    service_id="s1",
+                    tenant_id="t1")
+        json_str = role.to_json()
+        d1 = json.loads(json_str)
+        d2 = json.loads('{"role": {"name": "the role", \
+                          "id": "1", "serviceId": "s1", "tenantId": "t1"}}')
+        self.assertDictEqual(d1, d2)
 
     def test_role_xml_serialization(self):
         role = Role(id=1, name="the role", blank=None)
@@ -51,11 +57,20 @@ class TestModelsRole(unittest.TestCase):
         self.assertTrue(testutils.XMLTools.xmlEqual(xml_str,
                         '<role id="1" name="the role"/>'))
 
+    def test_role_xml_serialization_mapping(self):
+        role = Role(id=1, name="the role",
+                    service_id="s1",
+                    tenant_id="t1")
+        xml_str = role.to_xml()
+        self.assertTrue(testutils.XMLTools.xmlEqual(xml_str,
+            '<role id="1" name="the role" serviceId="s1" tenantId="t1"/>'))
+        self.assertEquals(role.service_id, "s1")
+
     def test_role_json_deserialization(self):
-        role = Role.from_json('{"name": "the role", "id": 1}',
+        role = Role.from_json('{"name": "the role", "id": "1"}',
                             hints={"contract_attributes": ['id', 'name']})
         self.assertIsInstance(role, Role)
-        self.assertEquals(role.id, 1)
+        self.assertEquals(role.id, "1")
         self.assertEquals(role.name, "the role")
 
     def test_role_xml_deserialization(self):

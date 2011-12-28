@@ -22,12 +22,8 @@ class TestModelsService(unittest.TestCase):
         service = Service(id=1, name="the service", blank=None)
         self.assertEquals(service.id, 1)
         self.assertEquals(service.name, "the service")
-        try:
-            x = service.some_bad_property
-        except AttributeError:
-            pass
-        except:
-            self.assert_(False, "Invalid attribute on service should fail")
+        self.assertRaises(AttributeError, getattr, service,
+                          'some_bad_property')
 
     def test_service_properties(self):
         service = Service(id=1, name="the service", blank=None)
@@ -41,7 +37,7 @@ class TestModelsService(unittest.TestCase):
         d1 = json.loads(json_str)
         d2 = json.loads('{"service": {"name": "the service", \
                           "id": 1, "dynamic": "test"}}')
-        self.assertEquals(d1, d2)
+        self.assertDictEqual(d1, d2)
 
     def test_service_xml_serialization(self):
         service = Service(id=1, name="the service", blank=None)

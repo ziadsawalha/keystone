@@ -26,7 +26,7 @@ import keystone.backends.api as api
 import keystone.backends.models as models
 from keystone.logic.types import fault
 from keystone.logic.types.tenant import Tenants
-from keystone.logic.types.role import Role, Roles
+from keystone.logic.types.role import Roles, Role
 from keystone.logic.types.service import Service, Services
 from keystone.logic.types.user import User, User_Update, Users
 from keystone.logic.types.endpoint import Endpoint, Endpoints, \
