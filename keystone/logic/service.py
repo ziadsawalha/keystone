@@ -377,7 +377,7 @@ class IdentityService(object):
         if not tenant_id:
             raise fault.UnauthorizedFault("Missing tenant id")
 
-        dtenant = api.TENANT.get(tenant_id)
+        dtenant = self.tenant_manager.get(tenant_id)
 
         return self.validate_tenant(dtenant)
 
@@ -385,7 +385,7 @@ class IdentityService(object):
         if not tenant_name:
             raise fault.UnauthorizedFault("Missing tenant name")
 
-        dtenant = api.TENANT.get_by_name(name=tenant_name)
+        dtenant = self.tenant_manager.get_by_name(name=tenant_name)
 
         return self.validate_tenant(dtenant)
 
@@ -398,7 +398,7 @@ class IdentityService(object):
         endpoints = None
 
         if dtoken.tenant_id:
-            dtenant = api.TENANT.get(dtoken.tenant_id)
+            dtenant = self.tenant_manager.get(dtoken.tenant_id)
             tenant = auth.Tenant(id=dtenant.id, name=dtenant.name)
 
             endpoints = api.TENANT.get_all_endpoints(dtoken.tenant_id)
@@ -434,7 +434,7 @@ class IdentityService(object):
         """return ValidateData object for a token/user pair"""
         tenant = None
         if dtoken.tenant_id:
-            dtenant = api.TENANT.get(dtoken.tenant_id)
+            dtenant = self.tenant_manager.get(dtoken.tenant_id)
             tenant = auth.Tenant(id=dtenant.id, name=dtenant.name)
 
         token = auth.Token(dtoken.expires, dtoken.id, tenant)
@@ -456,7 +456,7 @@ class IdentityService(object):
         # Also get the user's tenant's name
         tenant_name = None
         if duser.tenant_id:
-            utenant = api.TENANT.get(duser.tenant_id)
+            utenant = self.tenant_manager.get(duser.tenant_id)
             tenant_name = utenant.name
 
         user = auth.User(duser.id, duser.name, duser.tenant_id,
@@ -486,7 +486,7 @@ class IdentityService(object):
             raise fault.BadRequestFault("Expecting a Tenant")
 
         utils.check_empty_string(tenant.name, "Expecting a unique Tenant Name")
-        if api.TENANT.get_by_name(tenant.name) is not None:
+        if self.tenant_manager.get_by_name(tenant.name) is not None:
             raise fault.TenantConflictFault(
                 "A tenant with that name already exists")
 
@@ -494,7 +494,7 @@ class IdentityService(object):
         dtenant.name = tenant.name
         dtenant.description = tenant.description
         dtenant.enabled = tenant.enabled
-        return api.TENANT.create(dtenant)
+        return self.tenant_manager.create(dtenant)
 
     def get_tenants(self, admin_token, marker, limit, url,
                     is_service_operation=False):
@@ -518,7 +518,7 @@ class IdentityService(object):
                     tenants_for_user_get_page_markers(user, marker, limit)
             else:
                 # Return scoped tenant only
-                dtenants = [api.TENANT.get(scope or default_tenant)]
+                dtenants = [self.tenant_manager.get(scope or default_tenant)]
                 prev_page = 2
                 next_page = None
                 limit = 10
@@ -540,7 +540,7 @@ class IdentityService(object):
     def get_tenant(self, admin_token, tenant_id):
         self.validate_admin_token(admin_token)
 
-        dtenant = api.TENANT.get(tenant_id)
+        dtenant = self.tenant_manager.get(tenant_id)
         if not dtenant:
             raise fault.ItemNotFoundFault("The tenant could not be found")
         return Tenant(dtenant.id, dtenant.name, dtenant.desc, dtenant.enabled)
@@ -548,7 +548,7 @@ class IdentityService(object):
     def get_tenant_by_name(self, admin_token, tenant_name):
         self.validate_admin_token(admin_token)
 
-        dtenant = api.TENANT.get_by_name(tenant_name)
+        dtenant = self.tenant_manager.get_by_name(tenant_name)
         if not dtenant:
             raise fault.ItemNotFoundFault("The tenant could not be found")
         return dtenant
@@ -559,26 +559,26 @@ class IdentityService(object):
         if not isinstance(tenant, Tenant):
             raise fault.BadRequestFault("Expecting a Tenant")
 
-        dtenant = api.TENANT.get(tenant_id)
+        dtenant = self.tenant_manager.get(tenant_id)
         if dtenant is None:
             raise fault.ItemNotFoundFault("The tenant could not be found")
 
         utils.check_empty_string(tenant.name, "Expecting a unique Tenant Name")
 
-        if tenant.name != dtenant.name and api.TENANT.get_by_name(tenant.name):
+        if tenant.name != dtenant.name and \
+                self.tenant_manager.get_by_name(tenant.name):
             raise fault.TenantConflictFault(
                 "A tenant with that name already exists")
-        values = {'desc': tenant.description, 'enabled': tenant.enabled,
-                  'name': tenant.name}
-        api.TENANT.update(tenant_id, values)
-        dtenant = api.TENANT.get(tenant_id)
-        return Tenant(id=dtenant.id, name=dtenant.name,
-            description=dtenant.desc, enabled=dtenant.enabled)
+        values = {'id': tenant_id, 'desc': tenant.description,
+                  'enabled': tenant.enabled, 'name': tenant.name}
+        self.tenant_manager.update(values)
+        dtenant = self.tenant_manager.get(tenant_id)
+        return dtenant
 
     def delete_tenant(self, admin_token, tenant_id):
         self.validate_admin_token(admin_token)
 
-        dtenant = api.TENANT.get(tenant_id)
+        dtenant = self.tenant_manager.get(tenant_id)
         if dtenant is None:
             raise fault.ItemNotFoundFault("The tenant could not be found")
 
@@ -586,7 +586,7 @@ class IdentityService(object):
             raise fault.ForbiddenFault("You may not delete a tenant that "
                                        "contains get_users")
 
-        api.TENANT.delete(dtenant.id)
+        self.tenant_manager.delete(dtenant.id)
         return None
 
     #
@@ -621,10 +621,9 @@ class IdentityService(object):
         user.id = duser.id
         return user
 
-    @staticmethod
-    def validate_and_fetch_user_tenant(tenant_id):
+    def validate_and_fetch_user_tenant(self, tenant_id):
         if tenant_id:
-            dtenant = api.TENANT.get(tenant_id)
+            dtenant = self.tenant_manager.get(tenant_id)
             if dtenant is None:
                 raise fault.ItemNotFoundFault("The tenant is not found")
             elif not dtenant.enabled:
@@ -639,7 +638,7 @@ class IdentityService(object):
 
         if tenant_id is None:
             raise fault.BadRequestFault("Expecting a Tenant Id")
-        dtenant = api.TENANT.get(tenant_id)
+        dtenant = self.tenant_manager.get(tenant_id)
         if dtenant is  None:
             raise fault.ItemNotFoundFault("The tenant not found")
         if not dtenant.enabled:
@@ -776,7 +775,7 @@ class IdentityService(object):
         if not duser:
             raise fault.ItemNotFoundFault("The user could not be found")
 
-        dtenant = api.TENANT.get(duser.tenant_id)
+        dtenant = self.tenant_manager.get(duser.tenant_id)
         if dtenant is not None:
             api.USER.delete_tenant_user(user_id, dtenant.id)
         else:
@@ -902,7 +901,7 @@ class IdentityService(object):
         if drole is None:
             raise fault.ItemNotFoundFault("The role not found")
         if tenant_id is not None:
-            dtenant = api.TENANT.get(tenant_id)
+            dtenant = self.tenant_manager.get(tenant_id)
             if dtenant is None:
                 raise fault.ItemNotFoundFault("The tenant not found")
 
@@ -938,7 +937,7 @@ class IdentityService(object):
             raise fault.ItemNotFoundFault("The user could not be found")
 
         if tenant_id is not None:
-            dtenant = api.TENANT.get(tenant_id)
+            dtenant = self.tenant_manager.get(tenant_id)
             if not dtenant:
                 raise fault.ItemNotFoundFault("The tenant could not be found.")
         ts = []
@@ -1154,7 +1153,7 @@ class IdentityService(object):
         if tenant_id is None:
             raise fault.BadRequestFault("Expecting a Tenant Id")
 
-        if api.TENANT.get(tenant_id) is None:
+        if self.tenant_manager.get(tenant_id) is None:
             raise fault.ItemNotFoundFault("The tenant not found")
 
         ts = []
@@ -1192,7 +1191,7 @@ class IdentityService(object):
                                    endpoint_template):
         self.validate_service_admin_token(admin_token)
         utils.check_empty_string(tenant_id, "Expecting a Tenant Id.")
-        if api.TENANT.get(tenant_id) is None:
+        if self.tenant_manager.get(tenant_id) is None:
             raise fault.ItemNotFoundFault("The tenant not found")
 
         dendpoint_template = api.ENDPOINT_TEMPLATE.get(endpoint_template.id)
