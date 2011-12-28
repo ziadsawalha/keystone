@@ -24,9 +24,34 @@ TODO: move functionality into here. Ex:
 """
 
 import keystone.backends.api as api
-
+from keystone.logic.types import fault
 
 class Manager(object):
     def __init__(self, options):
         self.options = options
         self.driver = api.TOKEN
+
+    def create(self, token):
+        return self.driver.create(token)
+
+    def get(self, token_id):
+        """ Returns token by ID """
+        return self.driver.get(token_id)
+
+    def find(self, user_id, tenant_id=None):
+        """ Finds token by user ID and, optionally, tenant ID
+        
+        :param user_id: user id as a string
+        :param tenant_id: tenant id as a string (optional)
+        :returns: Token object or None
+        :raises: RuntimeError is user_id is None
+        """
+        if user_id is None:
+            raise RuntimeError("User ID is required when looking up tokens")
+        if tenant_id:
+            return self.driver.get_for_user_by_tenant(user_id, tenant_id)
+        else:
+            return self.driver.get_for_user(user_id)
+
+    def delete(self, token_id):
+        self.driver.delete(token_id)
