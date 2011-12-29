@@ -20,7 +20,7 @@ import logging
 
 import keystone.backends.api as api
 
-logger = logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
 
 class Manager(object):
@@ -29,6 +29,7 @@ class Manager(object):
         self.driver = api.USER
 
     def create(self, user):
+        """ Create user from dict or model, assign id if not there """
         return self.driver.create(user)
 
     def get(self, user_id):
@@ -44,21 +45,27 @@ class Manager(object):
         return self.driver.get_by_email(email=email)
 
     def users_get_page(self, marker, limit):
+        """ Get one page of users list """
         return self.driver.users_get_page(marker, limit)
 
     def users_get_page_markers(self, marker, limit):
+        """ Calculate pagination markers for users list """
         return self.driver.users_get_page_markers(marker, limit)
 
     def get_by_tenant(self, user_id, tenant_id):
+        """ Get user if associated with tenant, else None """
         return self.driver.get_by_tenant(user_id, tenant_id)
 
-    def users_get_by_tenant_get_page(self, 
-            tenant_id, role_id, marker, limit):
+    def users_get_by_tenant_get_page(self, tenant_id, role_id, marker, limit):
+        """ Get one page of users list for a tenant """
         return self.driver.users_get_by_tenant_get_page(
             tenant_id, role_id, marker, limit)
 
-    def users_get_by_tenant_get_page_markers(self, 
-                    tenant_id, role_id, marker, limit):
+    def users_get_by_tenant_get_page_markers(self,
+                                             tenant_id,
+                                             role_id,
+                                             marker, limit):
+        """ Calculate pagination markers for users list on a tenant """
         return self.driver.users_get_by_tenant_get_page_markers(
                     tenant_id, role_id, marker, limit)
 

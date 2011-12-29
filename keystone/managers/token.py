@@ -19,9 +19,8 @@
 import logging
 
 import keystone.backends.api as api
-from keystone.logic.types import fault
 
-logger = logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
 
 class Manager(object):
@@ -38,7 +37,7 @@ class Manager(object):
 
     def find(self, user_id, tenant_id=None):
         """ Finds token by user ID and, optionally, tenant ID
-        
+
         :param user_id: user id as a string
         :param tenant_id: tenant id as a string (optional)
         :returns: Token object or None

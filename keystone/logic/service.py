@@ -27,7 +27,6 @@ import keystone.backends.models as models
 from keystone.logic.types import fault
 from keystone.logic.types.tenant import Tenants
 from keystone.logic.types.role import Roles, Role
-from keystone.logic.types.service import Service, Services
 from keystone.logic.types.user import User, User_Update, Users
 from keystone.logic.types.endpoint import Endpoint, Endpoints, \
     EndpointTemplate, EndpointTemplates
@@ -35,6 +34,7 @@ from keystone.logic.types.credential import Credentials, PasswordCredentials
 from keystone import utils
 # New imports as we refactor old backend design and models
 from keystone.models import Tenant, Token
+from keystone.models import Service, Services
 from keystone.managers.token import Manager as TokenManager
 from keystone.managers.tenant import Manager as TenantManager
 from keystone.managers.user import Manager as UserManager

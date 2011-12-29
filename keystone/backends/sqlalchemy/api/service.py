@@ -19,6 +19,7 @@ from keystone.backends.sqlalchemy import get_session, models
 from keystone.backends import api
 from keystone.models import Service
 
+
 # pylint: disable=E1103,W0221
 class ServiceAPI(api.BaseServiceAPI):
     def __init__(self, *args, **kw):

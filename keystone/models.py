@@ -478,6 +478,33 @@ class Service(Resource):
         return result
 
 
+class Services(object):
+    "A collection of services."
+
+    def __init__(self, values, links):
+        self.values = values
+        self.links = links
+
+    def to_xml(self):
+        dom = etree.Element("services")
+        dom.set(u"xmlns",
+            "http://docs.openstack.org/identity/api/ext/OS-KSADM/v1.0")
+
+        for t in self.values:
+            dom.append(t.to_dom())
+
+        for t in self.links:
+            dom.append(t.to_dom())
+
+        return etree.tostring(dom)
+
+    def to_json(self):
+        services = [t.to_dict()["OS-KSADM:service"] for t in self.values]
+        services_links = [t.to_dict()["links"] for t in self.links]
+        return json.dumps({"OS-KSADM:services": services,
+            "OS-KSADM:services_links": services_links})
+
+
 class Tenant(Resource):
     """ Tenant model """
     # pylint: disable=E0203,C0103

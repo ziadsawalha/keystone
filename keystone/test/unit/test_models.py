@@ -1,5 +1,4 @@
 import json
-from lxml import etree
 import unittest2 as unittest
 
 from keystone.models import Resource
@@ -53,7 +52,7 @@ class TestModels(unittest.TestCase):
 
     def test_resource_json_serialization_mapping(self):
         resource = Resource(id=1, name="the resource", ref_id=12)
-        json_str = resource.to_json(hints={"maps": {"refId": "ref_id",}})
+        json_str = resource.to_json(hints={"maps": {"refId": "ref_id", }})
         d1 = json.loads(json_str)
         d2 = json.loads('{"resource": {"name": "the resource", "id": 1,\
 "refId": 12}}')
@@ -76,7 +75,7 @@ class TestModels(unittest.TestCase):
 
     def test_resource_xml_serialization_mapping(self):
         resource = Resource(id=1, name="the resource", ref_id=12)
-        xml_str = resource.to_xml(hints={"maps": {"refId": "ref_id",}})
+        xml_str = resource.to_xml(hints={"maps": {"refId": "ref_id", }})
         self.assertTrue(testutils.XMLTools.xmlEqual(xml_str,
                         '<resource id="1" name="the resource" refId="12"/>'))
 
