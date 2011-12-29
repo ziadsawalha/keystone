@@ -302,14 +302,6 @@ class UserAPI(api.BaseUserAPI):
 
         return user_role_ref
 
-    def user_get_update(self, id, session=None):
-        if not session:
-            session = get_session()
-
-        result = session.query(models.User).filter_by(uid=id).first()
-
-        return UserAPI.to_model(result)
-
     def users_get_page(self, marker, limit, session=None):
         if not session:
             session = get_session()

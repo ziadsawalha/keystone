@@ -69,8 +69,6 @@ class BaseUserAPI(object):
     def user_role_add(self, values):
         raise NotImplementedError
 
-    def user_get_update(self, id):
-        raise NotImplementedError
 
     def users_get_page(self, marker, limit):
         raise NotImplementedError

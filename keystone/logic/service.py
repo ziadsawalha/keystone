@@ -717,7 +717,7 @@ class IdentityService(object):
 
         values = {'id': user_id, 'email': user.email, 'name': user.name}
         self.user_manager.update(values)
-        duser = api.USER.user_get_update(user_id)
+        duser = self.user_manager.get(user_id)
         return User(duser.password, duser.id, duser.name, duser.tenant_id,
             duser.email, duser.enabled)
 

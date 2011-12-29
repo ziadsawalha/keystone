@@ -101,9 +101,6 @@ class UserAPI(BaseLdapAPI, BaseUserAPI):
         return self.api.role.add_user(values.role_id, values.user_id,
                                       values.tenant_id)
 
-    def user_get_update(self, id):
-        return self.get(id)
-
     def users_get_page(self, marker, limit):
         return self.get_page(marker, limit)
 
