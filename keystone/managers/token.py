@@ -14,17 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" Token manager module
+""" Token manager module """
 
-TODO: move functionality into here. Ex:
-
-    def get_token(self, context, token_id):
-        '''Return info for a token if it is valid.'''
-        return self.driver.get(token_id)
-"""
+import logging
 
 import keystone.backends.api as api
 from keystone.logic.types import fault
+
+logger = logging.getLogger(__name__)
+
 
 class Manager(object):
     def __init__(self, options):

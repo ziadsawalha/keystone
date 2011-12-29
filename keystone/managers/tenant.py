@@ -23,7 +23,11 @@ TODO: move functionality into here. Ex:
         return self.driver.get(tenant_id)
 """
 
+import logging
+
 import keystone.backends.api as api
+
+logger = logging.getLogger(__name__)
 
 
 class Manager(object):

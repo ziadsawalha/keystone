@@ -37,9 +37,10 @@ from keystone import utils
 from keystone.models import Tenant, Token
 from keystone.managers.token import Manager as TokenManager
 from keystone.managers.tenant import Manager as TenantManager
+from keystone.managers.user import Manager as UserManager
 
 
-LOG = logging.getLogger('keystone.logic.service')
+LOG = logging.getLogger(__name__)
 
 
 class IdentityService(object):
@@ -57,6 +58,7 @@ class IdentityService(object):
         backends.configure_backends(options)
         self.token_manager = TokenManager(options)
         self.tenant_manager = TenantManager(options)
+        self.user_manager = UserManager(options)
 
     #
     #  Token Operations
@@ -76,7 +78,7 @@ class IdentityService(object):
         elif auth_request.tenant_id:
             dtenant = self.validate_tenant_by_id(auth_request.tenant_id)
 
-        user = api.USER.get_by_name(auth_request.username)
+        user = self.user_manager.get_by_name(auth_request.username)
         if not user:
             raise fault.UnauthorizedFault("Unauthorized")
 
@@ -138,7 +140,7 @@ class IdentityService(object):
             if duser is None:
                 raise fault.UnauthorizedFault("Unauthorized on this tenant")
         else:
-            duser = api.USER.get(user_id)
+            duser = self.user_manager.get(user_id)
             if duser is None:
                 raise fault.UnauthorizedFault("Unauthorized")
 
@@ -197,7 +199,7 @@ class IdentityService(object):
         if token_id:
             token = self.token_manager.get(token_id)
             if token:
-                user = api.USER.get(token.user_id)
+                user = self.user_manager.get(token.user_id)
         return (token, user)
 
     def _validate_token(self, token_id, belongs_to=None, is_check_token=None):
@@ -407,7 +409,7 @@ class IdentityService(object):
 
         token = auth.Token(dtoken.expires, dtoken.id, tenant)
 
-        duser = api.USER.get(dtoken.user_id)
+        duser = self.user_manager.get(dtoken.user_id)
 
         ts = []
         if dtoken.tenant_id:
@@ -603,11 +605,11 @@ class IdentityService(object):
         utils.check_empty_string(user.name,
                 "Expecting a unique user Name")
 
-        if api.USER.get_by_name(user.name):
+        if self.user_manager.get_by_name(user.name):
             raise fault.UserConflictFault(
                 "A user with that name already exists")
 
-        if api.USER.get_by_email(user.email):
+        if self.user_manager.get_by_email(user.email):
             raise fault.EmailConflictFault(
                 "A user with that email already exists")
 
@@ -617,7 +619,7 @@ class IdentityService(object):
         duser.email = user.email
         duser.enabled = user.enabled
         duser.tenant_id = user.tenant_id
-        duser = api.USER.create(duser)
+        duser = self.user_manager.create(duser)
         user.id = duser.id
         return user
 
@@ -647,7 +649,7 @@ class IdentityService(object):
             if not api.ROLE.get(role_id):
                 raise fault.ItemNotFoundFault("The role not found")
         ts = []
-        dtenantusers = api.USER.users_get_by_tenant_get_page(
+        dtenantusers = self.user_manager.users_get_by_tenant_get_page(
             tenant_id, role_id, marker, limit)
         for dtenantuser in dtenantusers:
             ts.append(User(None, dtenantuser.id, dtenantuser.name, tenant_id,
@@ -656,7 +658,7 @@ class IdentityService(object):
                                                     "tenant_roles") else None))
         links = []
         if ts.__len__():
-            prev, next = api.USER.users_get_by_tenant_get_page_markers(
+            prev, next = self.user_manager.users_get_by_tenant_get_page_markers(
                     tenant_id, role_id, marker, limit)
             links = self.get_links(url, prev, next, limit)
         return Users(ts, links)
@@ -664,19 +666,19 @@ class IdentityService(object):
     def get_users(self, admin_token, marker, limit, url):
         self.validate_admin_token(admin_token)
         ts = []
-        dusers = api.USER.users_get_page(marker, limit)
+        dusers = self.user_manager.users_get_page(marker, limit)
         for duser in dusers:
             ts.append(User(None, duser.id, duser.name, duser.tenant_id,
                                    duser.email, duser.enabled))
         links = []
         if ts.__len__():
-            prev, next = api.USER.users_get_page_markers(marker, limit)
+            prev, next = self.user_manager.users_get_page_markers(marker, limit)
             links = self.get_links(url, prev, next, limit)
         return Users(ts, links)
 
     def get_user(self, admin_token, user_id):
         self.validate_admin_token(admin_token)
-        duser = api.USER.get(user_id)
+        duser = self.user_manager.get(user_id)
         if not duser:
             raise fault.ItemNotFoundFault("The user could not be found")
         return User_Update(id=duser.id, tenant_id=duser.tenant_id,
@@ -684,7 +686,7 @@ class IdentityService(object):
 
     def get_user_by_name(self, admin_token, user_name):
         self.validate_admin_token(admin_token)
-        duser = api.USER.get_by_name(user_name)
+        duser = self.user_manager.get_by_name(user_name)
         if not duser:
             raise fault.ItemNotFoundFault("The user could not be found")
         return User_Update(id=duser.id, tenant_id=duser.tenant_id,
@@ -693,7 +695,7 @@ class IdentityService(object):
     def update_user(self, admin_token, user_id, user):
         self.validate_admin_token(admin_token)
 
-        duser = api.USER.get(user_id)
+        duser = self.user_manager.get(user_id)
 
         if not duser:
             raise fault.ItemNotFoundFault("The user could not be found")
@@ -705,16 +707,16 @@ class IdentityService(object):
                 "Expecting a unique username")
 
         if user.name != duser.name and \
-          api.USER.get_by_name(user.name):
+          self.user_manager.get_by_name(user.name):
             raise fault.UserConflictFault(
                 "A user with that name already exists")
 
         if user.email != duser.email and \
-                api.USER.get_by_email(user.email) is not None:
+                self.user_manager.get_by_email(user.email) is not None:
             raise fault.EmailConflictFault("Email already exists")
 
-        values = {'email': user.email, 'name': user.name}
-        api.USER.update(user_id, values)
+        values = {'id': user_id, 'email': user.email, 'name': user.name}
+        self.user_manager.update(values)
         duser = api.USER.user_get_update(user_id)
         return User(duser.password, duser.id, duser.name, duser.tenant_id,
             duser.email, duser.enabled)
@@ -722,56 +724,56 @@ class IdentityService(object):
     def set_user_password(self, admin_token, user_id, user):
         self.validate_admin_token(admin_token)
 
-        duser = api.USER.get(user_id)
+        duser = self.user_manager.get(user_id)
         if not duser:
             raise fault.ItemNotFoundFault("The user could not be found")
 
         if not isinstance(user, User):
             raise fault.BadRequestFault("Expecting a User")
 
-        duser = api.USER.get(user_id)
+        duser = self.user_manager.get(user_id)
         if duser is None:
             raise fault.ItemNotFoundFault("The user could not be found")
 
-        values = {'password': user.password}
+        values = {'id': user_id, 'password': user.password}
 
-        api.USER.update(user_id, values)
+        self.user_manager.update(values)
 
         return User_Update(password=user.password)
 
     def enable_disable_user(self, admin_token, user_id, user):
         self.validate_admin_token(admin_token)
-        duser = api.USER.get(user_id)
+        duser = self.user_manager.get(user_id)
         if not duser:
             raise fault.ItemNotFoundFault("The user could not be found")
         if not isinstance(user, User):
             raise fault.BadRequestFault("Expecting a User")
 
-        values = {'enabled': user.enabled}
+        values = {'id': user_id, 'enabled': user.enabled}
 
-        api.USER.update(user_id, values)
+        self.user_manager.update(values)
 
-        duser = api.USER.get(user_id)
+        duser = self.user_manager.get(user_id)
 
         return User_Update(enabled=user.enabled)
 
     def set_user_tenant(self, admin_token, user_id, user):
         self.validate_admin_token(admin_token)
 
-        duser = api.USER.get(user_id)
+        duser = self.user_manager.get(user_id)
         if not duser:
             raise fault.ItemNotFoundFault("The user could not be found")
         if not isinstance(user, User):
             raise fault.BadRequestFault("Expecting a User")
 
         self.validate_and_fetch_user_tenant(user.tenant_id)
-        values = {'tenant_id': user.tenant_id}
-        api.USER.update(user_id, values)
+        values = {'id': user_id, 'tenant_id': user.tenant_id}
+        self.user_manager.update(values)
         return User_Update(tenant_id=user.tenant_id)
 
     def delete_user(self, admin_token, user_id):
         self.validate_admin_token(admin_token)
-        duser = api.USER.get(user_id)
+        duser = self.user_manager.get(user_id)
         if not duser:
             raise fault.ItemNotFoundFault("The user could not be found")
 
@@ -893,7 +895,7 @@ class IdentityService(object):
 
     def add_role_to_user(self, admin_token, user_id, role_id, tenant_id=None):
         self.validate_service_admin_token(admin_token)
-        duser = api.USER.get(user_id)
+        duser = self.user_manager.get(user_id)
         if not duser:
             raise fault.ItemNotFoundFault("The user could not be found")
 
@@ -931,7 +933,7 @@ class IdentityService(object):
     def get_user_roles(self, admin_token, marker,
         limit, url, user_id, tenant_id):
         self.validate_service_admin_token(admin_token)
-        duser = api.USER.get(user_id)
+        duser = self.user_manager.get(user_id)
 
         if not duser:
             raise fault.ItemNotFoundFault("The user could not be found")
@@ -1308,7 +1310,7 @@ class IdentityService(object):
     def get_credentials(self, admin_token, user_id, marker, limit, url):
         self.validate_admin_token(admin_token)
         ts = []
-        duser = api.USER.get(user_id)
+        duser = self.user_manager.get(user_id)
         if not duser:
             raise fault.ItemNotFoundFault("The user could not be found")
         ts.append(PasswordCredentials(duser.name, None))
@@ -1317,7 +1319,7 @@ class IdentityService(object):
 
     def get_password_credentials(self, admin_token, user_id):
         self.validate_admin_token(admin_token)
-        duser = api.USER.get(user_id)
+        duser = self.user_manager.get(user_id)
         if not duser:
             raise fault.ItemNotFoundFault("The user could not be found")
         if not duser.password:
@@ -1327,7 +1329,7 @@ class IdentityService(object):
 
     def delete_password_credentials(self, admin_token, user_id):
         self.validate_admin_token(admin_token)
-        duser = api.USER.get(user_id)
+        duser = self.user_manager.get(user_id)
         if not duser:
             raise fault.ItemNotFoundFault("The user could not be found")
         values = {'password': None}
@@ -1337,27 +1339,27 @@ class IdentityService(object):
     def update_password_credentials(self, admin_token, user_id,
                                     password_credentials):
         self.validate_admin_token(admin_token)
-        duser = api.USER.get(user_id)
+        duser = self.user_manager.get(user_id)
         if not duser:
             raise fault.ItemNotFoundFault("The user could not be found")
 
         if password_credentials.user_name is None\
             or not password_credentials.user_name.strip():
             raise fault.BadRequestFault("Expecting a username.")
-        duser_name = api.USER.get_by_name(password_credentials.user_name)
+        duser_name = self.user_manager.get_by_name(password_credentials.user_name)
         if duser_name.id != duser.id:
             raise fault.UserConflictFault(
                 "A user with that name already exists")
         values = {'password': password_credentials.password, \
             'name': password_credentials.user_name}
         api.USER.update(user_id, values)
-        duser = api.USER.get(user_id)
+        duser = self.user_manager.get(user_id)
         return PasswordCredentials(duser.name, duser.password)
 
     def create_password_credentials(self, admin_token, user_id,
                                     password_credentials):
         self.validate_admin_token(admin_token)
-        duser = api.USER.get(user_id)
+        duser = self.user_manager.get(user_id)
         if not duser:
             raise fault.ItemNotFoundFault("The user could not be found")
 
@@ -1366,7 +1368,7 @@ class IdentityService(object):
             raise fault.BadRequestFault("Expecting a username.")
 
         if password_credentials.user_name != duser.name:
-            duser_name = api.USER.get_by_name(password_credentials.user_name)
+            duser_name = self.user_manager.get_by_name(password_credentials.user_name)
             if duser_name:
                 raise fault.UserConflictFault(
                     "A user with that name already exists")
@@ -1376,7 +1378,7 @@ class IdentityService(object):
         values = {'password': password_credentials.password, \
             'name': password_credentials.user_name}
         api.USER.update(user_id, values)
-        duser = api.USER.get(user_id)
+        duser = self.user_manager.get(user_id)
         return PasswordCredentials(duser.name, duser.password)
 
     @staticmethod
