@@ -137,7 +137,7 @@ class IdentityService(object):
 
     def _authenticate(self, validate, user_id, tenant_id=None):
         if tenant_id:
-            duser = api.USER.get_by_tenant(user_id, tenant_id)
+            duser = self.user_manager.get_by_tenant(user_id, tenant_id)
             if duser is None:
                 raise fault.UnauthorizedFault("Unauthorized on this tenant")
         else:
@@ -914,7 +914,7 @@ class IdentityService(object):
         drole_ref.role_id = drole.id
         if tenant_id is not None:
             drole_ref.tenant_id = dtenant.id
-        api.USER.user_role_add(drole_ref)
+        self.user_manager.user_role_add(drole_ref)
 
     def remove_role_from_user(self, admin_token, user_id, role_id,
                               tenant_id=None):

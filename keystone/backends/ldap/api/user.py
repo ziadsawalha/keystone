@@ -84,15 +84,15 @@ class UserAPI(BaseLdapAPI, BaseUserAPI):
     def user_roles_by_tenant(self, user_id, tenant_id):
         return self.api.role.ref_get_all_tenant_roles(user_id, tenant_id)
 
-    def get_by_tenant(self, id, tenant_id):
-        user_dn = self._id_to_dn(id)
-        user = self.get(id)
+    def get_by_tenant(self, user_id, tenant_id):
+        user_dn = self._id_to_dn(user_id)
+        user = self.get(user_id)
         tenant = self.api.tenant._ldap_get(tenant_id,
                                            '(member=%s)' % (user_dn,))
         if tenant is not None:
             return user
         else:
-            if self.api.role.ref_get_all_tenant_roles(id, tenant_id):
+            if self.api.role.ref_get_all_tenant_roles(user_id, tenant_id):
                 return user
         return None
 

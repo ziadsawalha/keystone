@@ -49,6 +49,9 @@ class Manager(object):
     def users_get_page_markers(self, marker, limit):
         return self.driver.users_get_page_markers(marker, limit)
 
+    def get_by_tenant(self, user_id, tenant_id):
+        return self.driver.get_by_tenant(user_id, tenant_id)
+
     def users_get_by_tenant_get_page(self, 
             tenant_id, role_id, marker, limit):
         return self.driver.users_get_by_tenant_get_page(
@@ -68,3 +71,6 @@ class Manager(object):
 
     def check_password(self, user_id, password):
         return self.driver.check_password(user_id, password)
+
+    def user_role_add(self, values):
+        self.driver.user_role_add(values)

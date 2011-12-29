@@ -92,7 +92,18 @@ class BaseUserAPI(object):
         """
         raise NotImplementedError
 
-    def get_by_tenant(self, id, tenant_id):
+    def get_by_tenant(self, user_id, tenant_id):
+        """ Gets a user for a tenant
+
+        Same as get user, but also validates the user is related to that tenant
+        either through the default tenant (user.tenant_id) or by role
+
+        :param user_id: string - id of user
+        :param tenant_id: string - id of tenant
+        :returns: models.User - the user object valid on the tenant, othwerwise
+            None
+
+        """
         raise NotImplementedError
 
     def get_by_access(self, access):
@@ -102,6 +113,14 @@ class BaseUserAPI(object):
         raise NotImplementedError
 
     def user_role_add(self, values):
+        """ Adds a user to a role (optionally for a tenant) - 'grant'
+
+        This creates a new UserRoleAssociation based on the passed in values
+
+        :param values: dict of values containing user_id, role_id, and
+                       optionally a tenant_id
+
+        """
         raise NotImplementedError
 
     def users_get_page(self, marker, limit):
