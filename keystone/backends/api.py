@@ -25,22 +25,49 @@ class BaseUserAPI(object):
         pass
 
     def get_all(self):
+        """ Get all users """
         raise NotImplementedError
 
     def create(self, values):
+        """ Create a user
+
+        The backend will assign an ID if is not passed in
+
+        :param values: dict of user attributes (models.User works)
+        :returns: models.User - the created user object
+
+        """
         raise NotImplementedError
 
     def get(self, id):
+        """ Get a user
+
+        :param id: string - the user ID to get
+        :returns: models.User - the user object
+
+        """
         raise NotImplementedError
 
     def get_by_name(self, name):
+        """ Get a user by username
+
+        :param name: string - the user name
+        :returns: models.User
+
+        """
         raise NotImplementedError
 
     def get_by_email(self, email):
+        """ Get a user by email
+
+        :param name: string - the user email
+        :returns: models.User
+
+        """
         raise NotImplementedError
 
     def get_page(self, marker, limit):
-        raise NotImplementedError
+       raise NotImplementedError
 
     def get_page_markers(self, marker, limit):
         raise NotImplementedError
@@ -49,9 +76,20 @@ class BaseUserAPI(object):
         raise NotImplementedError
 
     def update(self, id, values):
+        """ Update a user
+
+        :param values: dict of user attributes (models.User works)
+        :returns: models.User - the updated user object
+
+        """
         raise NotImplementedError
 
     def delete(self, id):
+        """ Delete a user
+
+        :param id: string - the user id
+
+        """
         raise NotImplementedError
 
     def get_by_tenant(self, id, tenant_id):
@@ -60,15 +98,11 @@ class BaseUserAPI(object):
     def get_by_access(self, access):
         raise NotImplementedError
 
-    def delete_tenant_user(self, id, tenant_id):
-        raise NotImplementedError
-
     def users_get_by_tenant(self, user_id, tenant_id):
         raise NotImplementedError
 
     def user_role_add(self, values):
         raise NotImplementedError
-
 
     def users_get_page(self, marker, limit):
         raise NotImplementedError
@@ -83,7 +117,16 @@ class BaseUserAPI(object):
         role_id, marker, limit):
         raise NotImplementedError
 
-    def check_password(self, user, password):
+    def check_password(self, user_id, password):
+        """ Check a user password
+
+        The backend should handle any encryption/decryption
+
+        :param user_id: string - user id
+        :param password: string - the password to check
+        :returns: True/False
+
+        """
         raise NotImplementedError
 
 

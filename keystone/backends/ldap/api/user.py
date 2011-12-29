@@ -64,6 +64,9 @@ class UserAPI(BaseLdapAPI, BaseUserAPI):
         super(UserAPI, self).update(id, values, old_obj)
 
     def delete(self, id):
+        user = self.get(id)
+        if user.tenant_id:
+            self.api.tenant.remove_user(user.tenant_id, id)
         super(UserAPI, self).delete(id)
         for ref in self.api.role.ref_get_all_global_roles(id):
             self.api.role.ref_delete(ref.id)
@@ -93,10 +96,6 @@ class UserAPI(BaseLdapAPI, BaseUserAPI):
                 return user
         return None
 
-    def delete_tenant_user(self, id, tenant_id):
-        self.api.tenant.remove_user(tenant_id, id)
-        self.delete(id)
-
     def user_role_add(self, values):
         return self.api.role.add_user(values.role_id, values.user_id,
                                       values.tenant_id)
@@ -116,7 +115,8 @@ class UserAPI(BaseLdapAPI, BaseUserAPI):
         return self._get_page_markers(marker, limit,
                 self.api.tenant.get_users(tenant_id, role_id))
 
-    def check_password(self, user, password):
+    def check_password(self, user_id, password):
+        user = self.get(user_id)
         return utils.check_password(password, user.password)
 
     add_redirects(locals(), SQLUserAPI, ['get_by_group', 'tenant_group',

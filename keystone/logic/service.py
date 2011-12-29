@@ -70,7 +70,8 @@ class IdentityService(object):
                 "Expecting auth_with_password_credentials!")
 
         def validate(duser):
-            return api.USER.check_password(duser, auth_request.password)
+            return self.user_manager.check_password(duser.id,
+                                                    auth_request.password)
 
         if auth_request.tenant_name:
             dtenant = self.validate_tenant_by_name(auth_request.tenant_name)
@@ -777,11 +778,7 @@ class IdentityService(object):
         if not duser:
             raise fault.ItemNotFoundFault("The user could not be found")
 
-        dtenant = self.tenant_manager.get(duser.tenant_id)
-        if dtenant is not None:
-            api.USER.delete_tenant_user(user_id, dtenant.id)
-        else:
-            api.USER.delete(user_id)
+        self.user_manager.delete(user_id)
         return None
 
     def create_role(self, admin_token, role):
@@ -1332,9 +1329,8 @@ class IdentityService(object):
         duser = self.user_manager.get(user_id)
         if not duser:
             raise fault.ItemNotFoundFault("The user could not be found")
-        values = {'password': None}
-        api.USER.update(user_id, values)
-        return
+        values = {'id': user_id, 'password': None}
+        self.user_manager.update(values)
 
     def update_password_credentials(self, admin_token, user_id,
                                     password_credentials):
@@ -1350,9 +1346,9 @@ class IdentityService(object):
         if duser_name.id != duser.id:
             raise fault.UserConflictFault(
                 "A user with that name already exists")
-        values = {'password': password_credentials.password, \
+        values = {'id': user_id, 'password': password_credentials.password, \
             'name': password_credentials.user_name}
-        api.USER.update(user_id, values)
+        self.user_manager.update(values)
         duser = self.user_manager.get(user_id)
         return PasswordCredentials(duser.name, duser.password)
 
@@ -1375,9 +1371,9 @@ class IdentityService(object):
         if duser.password:
             raise fault.BadRequestFault(
                 "Password credentials already available.")
-        values = {'password': password_credentials.password, \
+        values = {'id': user_id, 'password': password_credentials.password, \
             'name': password_credentials.user_name}
-        api.USER.update(user_id, values)
+        self.user_manager.update(values)
         duser = self.user_manager.get(user_id)
         return PasswordCredentials(duser.name, duser.password)
 

@@ -65,3 +65,6 @@ class Manager(object):
 
     def delete(self, user_id):
         self.driver.delete(user_id)
+
+    def check_password(self, user_id, password):
+        return self.driver.check_password(user_id, password)
