@@ -79,7 +79,7 @@ class TestModelsRole(unittest.TestCase):
 
     def test_role_inspection(self):
         role = Role(id=1, name="the role", blank=None)
-        self.assertIsNone(role.inspect())
+        self.assertFalse(role.inspect())
 
     def test_role_validation(self):
         role = Role(id=1, name="the role", blank=None)

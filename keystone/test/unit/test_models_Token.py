@@ -59,7 +59,7 @@ class TestModelsToken(unittest.TestCase):
 
     def test_token_inspection(self):
         token = Token(id=1, name="the token", blank=None)
-        self.assertIsNone(token.inspect())
+        self.assertFalse(token.inspect())
 
     def test_token_validation(self):
         token = Token(id=1, name="the token", blank=None)

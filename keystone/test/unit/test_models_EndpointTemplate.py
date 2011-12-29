@@ -68,7 +68,7 @@ class TestModelsEndpointTemplate(unittest.TestCase):
     def test_endpointtemplate_inspection(self):
         endpointtemplate = EndpointTemplate(id=1, name="the endpointtemplate",
                                             blank=None)
-        self.assertIsNone(endpointtemplate.inspect())
+        self.assertFalse(endpointtemplate.inspect())
 
     def test_endpointtemplate_validation(self):
         endpointtemplate = EndpointTemplate(id=1, name="the endpointtemplate",

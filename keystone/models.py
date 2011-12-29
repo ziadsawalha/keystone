@@ -65,9 +65,9 @@ The uses supported are:
 """
 
 import json
-
 from lxml import etree
 
+from keystone import utils
 from keystone.utils import fault
 
 
@@ -166,7 +166,7 @@ class Resource(dict):
         errors = self.inspect(fail_fast=True)
         if errors:
             raise errors[0][0](errors[0][1])
-        return errors is None
+        return True
 
     # pylint: disable=W0613, R0201
     def inspect(self, fail_fast=None):
@@ -176,7 +176,7 @@ class Resource(dict):
         :returns: [(faultClass, message), ...], ordered by relevance
             - if None, then no errors found
         """
-        return None
+        return []
 
     #
     # Serialization Functions - may be moved to a different class
@@ -184,9 +184,10 @@ class Resource(dict):
     def __str__(self):
         return str(self.to_dict())
 
-    def to_dict(self):
+    def to_dict(self, root_name=None):
         """ For compatibility with logic.types """
-        root_name = self.__class__.__name__.lower()
+        if root_name is None:
+            root_name = self.__class__.__name__.lower()
         return {root_name: self.strip_null_fields(self.copy())}
 
     @staticmethod
@@ -321,14 +322,15 @@ class Resource(dict):
         return dom
 
     @classmethod
-    def from_json(cls, json_str, hints=None):
+    def from_json(cls, json_str, hints=None, model_name=None):
         """ Deserializes object from json - assumes latest Keystone
         contract
         """
         try:
             object = json.loads(json_str)
 
-            model_name = cls.__name__.lower()
+            if model_name is None:
+                model_name = cls.__name__.lower()
             if model_name in object:
                 # Ignore class name if it is there
                 object = object[model_name]
@@ -421,18 +423,59 @@ class Resource(dict):
 
 class Service(Resource):
     """ Service model """
-    def __init__(self, id=None, type=None, name=None, description=None,
+    def __init__(self, id=None, name=None, type=None, description=None,
                  *args, **kw):
-        super(Service, self).__init__(id=id, type=type, name=name,
+        super(Service, self).__init__(id=id, name=name, type=type,
                                       description=description, *args, **kw)
+        if isinstance(self.id, int):
+            self.id = str(self.id)
 
-    def to_json_20(self):
-        return super(Service, self).to_json_20()
+    def to_dict(self):
+        root_name = 'OS-KSADM:service'
+        return super(Service, self).to_dict(root_name=root_name)
+
+    def to_dom(self, xmlns=None, hints=None):
+        if xmlns is None:
+            xmlns = "http://docs.openstack.org/identity/api/ext/OS-KSADM/v1.0"
+        return super(Service, self).to_dom(xmlns, hints=hints)
+
+    @classmethod
+    def from_json(cls, json_str, hints=None):
+        result = super(Service, cls).from_json(json_str, hints=hints,
+                                              model_name="OS-KSADM:service")
+        result.validate()  # TODO(zns): remove; compatibility with logic.types
+        return result
+
+    @classmethod
+    def from_xml(cls, xml_str, hints=None):
+        result = super(Service, cls).from_xml(xml_str, hints=hints)
+        result.validate()  # TODO(zns): remove; compatibility with logic.types
+        return result
 
     def inspect(self, fail_fast=None):
         result = super(Service, self).inspect(fail_fast)
         if fail_fast and result:
             return result
+
+        # Check that fields are valid
+        invalid = [key for key in result if key not in\
+                   ['id', 'name', 'type', 'description']]
+        if invalid != []:
+            result.append((fault.BadRequestFault, "Invalid attribute(s): %s"
+                                        % invalid))
+            if fail_fast:
+                return result
+
+        if utils.is_empty_string(self.name):
+            result.append((fault.BadRequestFault, "Expecting Service Name"))
+            if fail_fast:
+                return result
+
+        if utils.is_empty_string(self.type):
+            result.append((fault.BadRequestFault, "Expecting Service Type"))
+            if fail_fast:
+                return result
+        return result
 
 
 class Tenant(Resource):

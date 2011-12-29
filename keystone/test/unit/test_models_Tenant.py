@@ -124,7 +124,7 @@ class TestModelsTenant(unittest.TestCase):
 
     def test_tenant_inspection(self):
         tenant = Tenant(id=8, name="the tenant", blank=None)
-        self.assertIsNone(tenant.inspect())
+        self.assertFalse(tenant.inspect())
 
     def test_tenant_validation(self):
         tenant = Tenant(id=9, name="the tenant", blank=None)

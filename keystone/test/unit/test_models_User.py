@@ -58,7 +58,7 @@ class TestModelsUser(unittest.TestCase):
 
     def test_user_inspection(self):
         user = User(id=1, name="the user", blank=None)
-        self.assertIsNone(user.inspect())
+        self.assertFalse(user.inspect())
 
     def test_user_validation(self):
         user = User(id=1, name="the user", blank=None)

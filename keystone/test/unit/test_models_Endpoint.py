@@ -69,7 +69,7 @@ class TestModelsEndpoint(unittest.TestCase):
 
     def test_endpoint_inspection(self):
         endpoint = Endpoint(id=8, name="the endpoint", blank=None)
-        self.assertIsNone(endpoint.inspect())
+        self.assertFalse(endpoint.inspect())
 
     def test_endpoint_validation(self):
         endpoint = Endpoint(id=9, name="the endpoint", blank=None)

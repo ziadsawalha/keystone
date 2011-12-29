@@ -15,92 +15,9 @@
 
 import json
 from lxml import etree
-from keystone.logic.types import fault
-from keystone import utils
+from keystone import models
 
-
-class Service(object):
-    def __init__(self, id, name, type, description):
-        self.id = id
-        self.name = name
-        self.type = type
-        self.description = description
-
-    @staticmethod
-    def from_xml(xml_str):
-        try:
-            dom = etree.Element("root")
-            dom.append(etree.fromstring(xml_str))
-            root = dom.find(
-                "{http://docs.openstack.org/identity/api/ext/OS-KSADM/v1.0}"\
-                "service")
-            if root is None:
-                raise fault.BadRequestFault("Expecting Service")
-            id = root.get("id")
-            name = root.get("name")
-            type = root.get("type")
-            description = root.get("description")
-            utils.check_empty_string(name, "Expecting Service Name")
-            utils.check_empty_string(type, "Expecting Service Type")
-            return Service(id, name, type, description)
-        except etree.LxmlError as e:
-            raise fault.BadRequestFault("Cannot parse service", str(e))
-
-    @staticmethod
-    def from_json(json_str):
-        try:
-            obj = json.loads(json_str)
-            if not "OS-KSADM:service" in obj:
-                raise fault.BadRequestFault("Expecting service")
-            service = obj["OS-KSADM:service"]
-
-            # Check that fields are valid
-            invalid = [key for key in service if key not in\
-                       ['id', 'name', 'type', 'description']]
-            if invalid != []:
-                raise fault.BadRequestFault("Invalid attribute(s): %s"
-                                            % invalid)
-
-            id = service.get('id')
-            name = service.get('name')
-            type = service.get('type')
-            description = service.get('description')
-            utils.check_empty_string(name, "Expecting Service Name")
-            utils.check_empty_string(type, "Expecting Service Type")
-            return Service(id, name, type, description)
-        except (ValueError, TypeError) as e:
-            raise fault.BadRequestFault("Cannot parse service", str(e))
-
-    def to_dom(self):
-        dom = etree.Element("service",
-            xmlns="http://docs.openstack.org/identity/api/ext/OS-KSADM/v1.0")
-        if self.id:
-            dom.set("id", unicode(self.id))
-        if self.name:
-            dom.set("name", unicode(self.name))
-        if self.type:
-            dom.set("type", unicode(self.type))
-        if self.description:
-            dom.set("description", unicode(self.description).lower())
-        return dom
-
-    def to_xml(self):
-        return etree.tostring(self.to_dom())
-
-    def to_dict(self):
-        service = {}
-        if self.id:
-            service["id"] = unicode(self.id)
-        if self.name:
-            service["name"] = unicode(self.name)
-        if self.type:
-            service["type"] = unicode(self.type)
-        if self.description:
-            service["description"] = unicode(self.description).lower()
-        return {'OS-KSADM:service': service}
-
-    def to_json(self):
-        return json.dumps(self.to_dict())
+Service = models.Service  # TODO(zns): remove; compatibility with logic.types
 
 
 class Services(object):

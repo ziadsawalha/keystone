@@ -102,7 +102,7 @@ class TestModels(unittest.TestCase):
 
     def test_resource_inspection(self):
         resource = Resource(id=1, name="the resource", blank=None)
-        self.assertIsNone(resource.inspect())
+        self.assertFalse(resource.inspect())
 
     def test_resource_validation(self):
         resource = Resource(id=1, name="the resource", blank=None)
